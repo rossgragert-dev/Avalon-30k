@@ -1457,8 +1457,11 @@ export class Renderer {
     dropFrameMs: 0,
   };
   private runtimeEntryElapsedMs = 0;
-  private entityViewCreateRangeSq = ENTITY_VIEW_CREATE_RANGE_SQ;
-  private entityViewDestroyRangeSq = ENTITY_VIEW_DESTROY_RANGE_SQ;
+  // iOS thermal profile: do not build articulated/interactive views out to
+  // the donor MMO's full 80/96 yd bands. Gameplay authority remains unchanged;
+  // this only reduces scene graphs, draw calls, animation and retained GPU state.
+  private entityViewCreateRangeSq = GFX.iosMemoryProfile ? 52 * 52 : ENTITY_VIEW_CREATE_RANGE_SQ;
+  private entityViewDestroyRangeSq = GFX.iosMemoryProfile ? 64 * 64 : ENTITY_VIEW_DESTROY_RANGE_SQ;
   private renderBudgetGovernor!: RenderBudgetGovernor;
   private renderBudgetState!: RenderBudgetState;
   private readonly renderBudgetSample: RenderBudgetSample = {
