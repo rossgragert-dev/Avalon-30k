@@ -180,6 +180,10 @@ import { mouselookReleaseFacing } from './game/mouselook_release';
 import { music } from './game/music';
 import { tryNearbyInteraction } from './game/nearby_interaction';
 import { nextNpcTargetForWorld } from './game/npc_cycle';
+import {
+  AVALON_PROTAGONIST_CLASS,
+  AVALON_PROTAGONIST_NAME,
+} from './game/avalon_identity';
 import { isOfflineModeAvailable } from './game/offline_mode_gate';
 import { offlineWorldConfig } from './game/offline_world_config';
 import { interpolatedOnlineSelfFacing } from './game/online_facing_mirror';
@@ -9214,32 +9218,23 @@ function wireStartScreens(): void {
     show('#login-panel');
   };
 
-  const handleOfflineStart = (cls: PlayerClass) => {
-    const rawName = offlineNameInput.value.trim();
-    if (!rawName) {
-      offlineError.textContent = t('errors.characterNameRequired');
-      offlineNameInput.classList.add('user-invalid-fallback');
-      offlineNameInput.setAttribute('aria-invalid', 'true');
-      offlineNameInput.focus();
-      return;
-    }
-    if (!validateCharacterName(rawName)) {
-      offlineError.textContent = t('errors.characterNameInvalid');
-      offlineNameInput.classList.add('user-invalid-fallback');
-      offlineNameInput.setAttribute('aria-invalid', 'true');
-      offlineNameInput.focus();
-      return;
-    }
-
+  const handleOfflineStart = (_cls: PlayerClass) => {
+    // Avalon 30K is character-driven rather than class-driven. During v0.1
+    // Lancelot deliberately rides the inherited warrior id for compatibility,
+    // regardless of any legacy class chip a test harness may still activate.
     offlineError.textContent = '';
+    offlineNameInput.value = AVALON_PROTAGONIST_NAME;
     offlineNameInput.classList.remove('user-invalid-fallback');
     offlineNameInput.removeAttribute('aria-invalid');
 
     audio.init();
     music.init();
     sfx.init();
-    const name = sanitizeOfflineName(rawName);
-    void startOffline(cls, name, selectedSkin('#offline-skin-row', offlineSkin));
+    void startOffline(
+      AVALON_PROTAGONIST_CLASS,
+      AVALON_PROTAGONIST_NAME,
+      selectedSkin('#offline-skin-row', offlineSkin),
+    );
   };
 
   const handleOfflineSelect = () => {
@@ -9249,9 +9244,12 @@ function wireStartScreens(): void {
     if (!offlineAvailable) return;
     show('#offline-select');
 
-    // Select warrior by default and render details
+    // Lancelot currently maps to the inherited warrior id. Keep that stable
+    // internal selection while the player-facing flow presents a named hero.
+    offlineNameInput.value = AVALON_PROTAGONIST_NAME;
+    offlineNameInput.readOnly = true;
     const warriorCard = document.querySelector(
-      '#offline-select .mini-class[data-class="warrior"]',
+      `#offline-select .mini-class[data-class="${AVALON_PROTAGONIST_CLASS}"]`,
     ) as HTMLElement | null;
     if (warriorCard) {
       document.querySelectorAll('#offline-select .mini-class').forEach((c) => {
