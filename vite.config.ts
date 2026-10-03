@@ -396,8 +396,13 @@ function diagnosticsCapturePlugin() {
     },
   };
 }
+const singlePlayerWebBuild = process.env.WOC_SINGLEPLAYER_WEB === '1';
+const externalPublicAssets = process.env.WOC_EXTERNAL_PUBLIC_ASSETS === '1';
+const siteBase = env(['VITE_SITE_BASE']) ?? '/';
+
 export default defineConfig({
-  base: '/',
+  base: siteBase,
+  ...(externalPublicAssets ? { publicDir: false } : {}),
   // The Svelte plugin only transforms the standalone admin entry. The testing
   // plugin is scoped to Vitest so it cannot affect production client builds.
   plugins: [
@@ -476,14 +481,18 @@ export default defineConfig({
     // bundle or move the resolved-table SHA.
     manifest: true,
     rollupOptions: {
-      input: {
-        main: fileURLToPath(new URL('index.html', import.meta.url)),
-        admin: fileURLToPath(new URL('admin.html', import.meta.url)),
-        play: fileURLToPath(new URL('play.html', import.meta.url)),
-        guide: fileURLToPath(new URL('guide.html', import.meta.url)),
-        editor: fileURLToPath(new URL('editor.html', import.meta.url)),
-        walletHandoff: fileURLToPath(new URL('wallet-handoff.html', import.meta.url)),
-      },
+      input: singlePlayerWebBuild
+        ? {
+            main: fileURLToPath(new URL('index.html', import.meta.url)),
+          }
+        : {
+            main: fileURLToPath(new URL('index.html', import.meta.url)),
+            admin: fileURLToPath(new URL('admin.html', import.meta.url)),
+            play: fileURLToPath(new URL('play.html', import.meta.url)),
+            guide: fileURLToPath(new URL('guide.html', import.meta.url)),
+            editor: fileURLToPath(new URL('editor.html', import.meta.url)),
+            walletHandoff: fileURLToPath(new URL('wallet-handoff.html', import.meta.url)),
+          },
       output: {
         // three.js almost never changes between our releases and is the single
         // heaviest dependency in the game/editor bundles; splitting it into its
