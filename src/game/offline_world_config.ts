@@ -10,6 +10,7 @@ export function offlineWorldConfig(options: {
   readonly playerClass: PlayerClass;
   readonly name: string;
   readonly playerState?: CharacterState;
+  readonly campaignSession?: boolean;
   readonly world?: SimConfig['world'];
   readonly seedOverride?: number;
   readonly devCommands: boolean;
@@ -25,7 +26,13 @@ export function offlineWorldConfig(options: {
     devCommands: options.devCommands,
     // Editor play-test maps opt out of the live world's entry features.
     riftPortals: options.world === undefined,
-    compulsoryTutorial: options.world === undefined && options.playerState === undefined,
+    // The inherited proving-island tutorial belongs to the donor MMO. Campaign
+    // sessions begin on the mainland while we replace that tutorial with our own
+    // unknown-origin opening; editor/test sessions keep upstream behavior.
+    compulsoryTutorial:
+      options.world === undefined &&
+      options.playerState === undefined &&
+      options.campaignSession !== true,
     // Match live idle-AI throttling outside the player's actionable interest.
     idleMobTickRadius: PLAYER_INTEREST_DROP_RADIUS,
     world: options.world,
