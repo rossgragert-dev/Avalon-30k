@@ -54,6 +54,7 @@ jobs:
           WOC_EXTERNAL_PUBLIC_ASSETS: '1'
           VITE_SITE_BASE: /Avalon-30k/
           VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/nameless-road-v0.1.2-remote-sim-experiment/public
+          VITE_REMOTE_SIM_ORIGIN: https://avalon-30k-to-nameless-road-remote-sim.onrender.com
         run: pnpm vite build
 
       - name: Add minimal install assets
