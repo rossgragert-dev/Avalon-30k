@@ -6,7 +6,7 @@ describe('isOfflineModeAvailable', () => {
     expect(isOfflineModeAvailable(true)).toBe(true);
   });
 
-  it('is disabled in production builds', () => {
-    expect(isOfflineModeAvailable(false)).toBe(false);
+  it('remains available in production builds for Avalon 30K single-player', () => {
+    expect(isOfflineModeAvailable(false)).toBe(true);
   });
 });
