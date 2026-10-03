@@ -9357,9 +9357,9 @@ function wireStartScreens(): void {
     const serverOptions = Array.from(
       serverMenu.querySelectorAll<HTMLElement>('.server-select-option:not([hidden])'),
     );
-    const VALUE_KEY: Record<ServerMode, TranslationKey> = {
-      online: 'mode.serverOnline',
-      offline: 'mode.serverOffline',
+    const VALUE_LABEL: Record<ServerMode, string> = {
+      online: 'Online',
+      offline: 'Single Player',
     };
     // The trigger sub-line shows live realm stats for Online and a short blurb
     // for Offline; toggle the matching child by its data-mode.
@@ -9378,8 +9378,8 @@ function wireStartScreens(): void {
       serverSelect.dataset.mode = mode;
       // Update both the i18n key and the rendered text, so a later language
       // switch (translatePage) re-renders the *selected* mode correctly.
-      serverValue.setAttribute('data-i18n', VALUE_KEY[mode]);
-      serverValue.textContent = t(VALUE_KEY[mode]);
+      serverValue.removeAttribute('data-i18n');
+      serverValue.textContent = VALUE_LABEL[mode];
       subParts.forEach((part) => {
         part.toggleAttribute('hidden', part.dataset.mode !== mode);
       });
