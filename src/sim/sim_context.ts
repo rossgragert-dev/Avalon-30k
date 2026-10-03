@@ -106,6 +106,7 @@ export type RuntimeSimConfig = Required<
     | 'storagePrices'
     | 'vaultConsumptionAdmission'
     | 'gathererIdentity'
+    | 'playerState'
   >
 > &
   Pick<SimConfig, 'world' | 'perfLap' | 'respawnSeconds'> & {
