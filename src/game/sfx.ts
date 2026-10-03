@@ -10,6 +10,7 @@
 // pool of persistent looping sources for ambience and sustained spell casts.
 
 import { apiUrl } from '../client_origin';
+import { staticAssetUrl } from '../static_asset_url';
 import { ABILITIES } from '../sim/data';
 import type { BiomeId } from '../sim/types';
 import { isAbilityMomentRecorded } from './ability_sfx_coverage';
@@ -326,7 +327,7 @@ class Sfx {
       this.installProceduralBuffers();
       if (typeof window !== 'undefined') {
         this.clipsReady = loadRuntimeSfxPack(
-          apiUrl(SFX_RUNTIME_PACK_URL),
+          apiUrl(staticAssetUrl(SFX_RUNTIME_PACK_URL)),
           SFX_CATALOG_HASH,
           SFX_CLIPS,
         ).then((clips) => {
@@ -403,7 +404,7 @@ class Sfx {
           this.failedLoads.add(cacheKey);
           return null;
         }
-        const res = await fetch(variant.url);
+        const res = await fetch(staticAssetUrl(variant.url));
         if (!res.ok) {
           this.failedLoads.add(cacheKey);
           return null;
