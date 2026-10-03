@@ -9154,9 +9154,9 @@ function wireStartScreens(): void {
   const btnStartOffline = $('#btn-start-offline') as HTMLButtonElement;
   const offlineNameInput = $('#char-name') as HTMLInputElement;
   const offlineError = $('#offline-error');
-  // Offline mode runs an unauthenticated local Sim with no server authority:
-  // a dev/local-testing convenience only. Disabled in production builds,
-  // unchanged (enabled) under `npm run dev`.
+  // Avalon 30K uses the inherited local Sim as its authoritative single-player
+  // runtime. Online/server code remains in the fork temporarily as conversion
+  // scaffolding, but it is no longer the primary player entry path.
   const offlineAvailable = isOfflineModeAvailable(import.meta.env.DEV);
 
   const goToLoggedInPlay = () => {
@@ -9285,9 +9285,9 @@ function wireStartScreens(): void {
     }
   }
 
-  // --- Play console: realm dropdown + single Play CTA -----------------------
-  // The dropdown only chooses the destination (defaults to Online); the Play
-  // button commits, routing to the same online/offline flows as the legacy cards.
+  // --- Play console: single-player-first entry ------------------------------
+  // During the conversion the inherited selector remains as compatibility
+  // scaffolding, but Avalon 30K defaults to the local single-player Sim.
   // play.html has no dropdown: its Play button commits straight to online below.
   const serverSelect = $('#server-select');
   const serverTrigger = $('#server-select-trigger') as HTMLButtonElement | null;
@@ -9300,11 +9300,10 @@ function wireStartScreens(): void {
 
   if (serverSelect && serverTrigger && serverMenu && btnPlay) {
     type ServerMode = 'online' | 'offline';
-    // Production builds hide the Offline dropdown option outright, so it can
-    // neither be selected by mouse/keyboard nor land in serverOptions below.
-    if (!offlineAvailable) {
-      $('#server-opt-offline')?.setAttribute('hidden', '');
-    }
+    // Avalon 30K is intentionally single-player. Keep the inherited online
+    // machinery dormant for now, but remove it from the normal player-facing
+    // world picker while we unwind its dependencies safely.
+    $('#server-opt-online')?.setAttribute('hidden', '');
     const serverOptions = Array.from(
       serverMenu.querySelectorAll<HTMLElement>('.server-select-option:not([hidden])'),
     );
@@ -9315,7 +9314,7 @@ function wireStartScreens(): void {
     // The trigger sub-line shows live realm stats for Online and a short blurb
     // for Offline; toggle the matching child by its data-mode.
     const subParts = Array.from(serverSub.querySelectorAll<HTMLElement>('[data-mode]'));
-    let serverMode: ServerMode = 'online';
+    let serverMode: ServerMode = 'offline';
 
     const setActiveOption = (opt: HTMLElement | null): void => {
       serverOptions.forEach((o) => {
@@ -9426,7 +9425,7 @@ function wireStartScreens(): void {
       else handleOnlineSelect();
     });
 
-    applyServerMode('online');
+    applyServerMode('offline');
   } else if (btnPlay) {
     // Online-only entry (play.html): no realm dropdown in the console, so the
     // Play button commits straight to the online flow.
