@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - nameless-road-v0.1.2-remote-sim-experiment
+      - nameless-road-v0.1.3-iphone-thermal-profile
   workflow_dispatch:
 
 permissions:
