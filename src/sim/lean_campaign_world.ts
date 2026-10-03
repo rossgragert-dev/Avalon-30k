@@ -1,26 +1,38 @@
-import { BUILTIN_WORLD } from './data';
-import type { WorldContent } from './types';
+import { emptyZoneProps, type WorldContent, type ZoneDef } from './types';
 
 /**
  * Deliberately sparse single-player performance baseline.
  *
- * The class/combat/inventory systems live outside WorldContent, so we can keep
- * those intact while stripping the donor MMO world's authored population and
- * dressing. Start tiny, prove thermal stability, then add content back on purpose.
+ * This is not a reduced Eastbrook. It is a tiny neutral world definition whose
+ * only jobs are to prove movement, class combat, loot, death/respawn, Local vs
+ * Remote simulation, and sustained iPhone thermal stability.
  */
-const EMPTY_PROPS = Object.fromEntries(
-  Object.keys(BUILTIN_WORLD.props).map((key) => [key, []]),
-) as unknown as WorldContent['props'];
+const START = { x: 0, z: 0 } as const;
 
-const start = { ...BUILTIN_WORLD.playerStart };
+const BASELINE_ZONE: ZoneDef = {
+  id: 'nameless_road_baseline',
+  name: 'Quiet Clearing',
+  xMin: -120,
+  xMax: 120,
+  zMin: -120,
+  zMax: 120,
+  levelRange: [1, 3],
+  worldPvp: 'sanctuary',
+  biome: 'vale',
+  hub: { x: 0, z: 0, radius: 20, name: 'Quiet Clearing' },
+  graveyard: { x: -8, z: -8 },
+  lakes: [],
+  pois: [],
+  welcome: '',
+};
 
 export const LEAN_CAMPAIGN_WORLD: WorldContent = {
-  zones: BUILTIN_WORLD.zones.slice(0, 1),
+  zones: [BASELINE_ZONE],
   camps: [
     {
       mobId: 'forest_wolf',
-      center: { x: start.x, z: start.z + 42 },
-      radius: 11,
+      center: { x: 0, z: 34 },
+      radius: 7,
       count: 2,
       offStream: true,
     },
@@ -28,18 +40,24 @@ export const LEAN_CAMPAIGN_WORLD: WorldContent = {
   npcs: {},
   groundObjects: [],
   roads: [],
-  props: EMPTY_PROPS,
-  playerStart: start,
+  props: emptyZoneProps(),
+  playerStart: { ...START },
   services: {
-    stations: [],
-    mailboxes: [],
-    noticeboards: [],
-    musterBoards: [],
-    graveyards: BUILTIN_WORLD.services?.graveyards?.slice(0, 1) ?? [],
+    graveyards: [
+      {
+        id: 'nameless_road_baseline_graveyard',
+        name: 'Quiet Clearing',
+        x: -8,
+        z: -8,
+      },
+    ],
   },
   terrainEdits: [],
   placements: [],
   blockers: [],
+  // Keep accidental low terrain from becoming an expensive animated water
+  // surface in this performance baseline.
+  waterLevel: -100,
 };
 
 export const LEAN_CAMPAIGN_ENEMY_COUNT = LEAN_CAMPAIGN_WORLD.camps.reduce(
