@@ -1,0 +1,60 @@
+name: Remote Sim Experiment
+
+on:
+  push:
+    branches:
+      - nameless-road-v0.1.2-remote-sim-experiment
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout experiment
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test remote wire
+        run: pnpm vitest run tests/remote_sim_wire.test.ts tests/campaign_identity.test.ts
+
+      - name: Build remote service
+        run: pnpm run build:remote-sim
+
+      - name: Smoke remote service
+        run: |
+          PORT=8788 node dist-remote/remote_campaign.cjs > /tmp/remote-sim.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8788/healthz | grep -q '"ok":true'; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/remote-sim.log
+          exit 1
+
+      - name: Build browser client
+        env:
+          WOC_SINGLEPLAYER_WEB: '1'
+          WOC_EXTERNAL_PUBLIC_ASSETS: '1'
+          VITE_SITE_BASE: /Avalon-30k/
+          VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/nameless-road-v0.1.2-remote-sim-experiment/public
+        run: pnpm vite build
