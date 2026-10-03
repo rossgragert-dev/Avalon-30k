@@ -5,11 +5,14 @@ on:
     branches:
       - nameless-road-v0.1.2-remote-sim-experiment
       - nameless-road-v0.1.3-iphone-thermal-profile
-      - nameless-road-v0.1.3-iphone-thermal-profile
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: remote-sim-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   smoke:
@@ -58,5 +61,5 @@ jobs:
           WOC_SINGLEPLAYER_WEB: '1'
           WOC_EXTERNAL_PUBLIC_ASSETS: '1'
           VITE_SITE_BASE: /Avalon-30k/
-          VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/nameless-road-v0.1.2-remote-sim-experiment/public
+          VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/nameless-road-v0.1.3-iphone-thermal-profile/public
         run: pnpm vite build
