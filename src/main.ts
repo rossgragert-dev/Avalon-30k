@@ -318,6 +318,7 @@ import {
   NATIVE_APP,
 } from './net/online';
 import { installOtaUpdateGate } from './net/ota_update_gate';
+import { remoteTokenForClass } from './net/remote_sim_wire';
 import { realmPopulation } from './net/realm_population';
 import { RECONNECT_CONFLICT_ERROR } from './net/reconnect_policy';
 import {
@@ -6785,6 +6786,63 @@ function syncCharselectEnterButton(): void {
   }
 }
 
+function configuredRemoteSimOrigin(): string {
+  const query =
+    typeof location !== 'undefined' ? new URLSearchParams(location.search).get('remoteSim') : null;
+  const configured = query || String(import.meta.env.VITE_REMOTE_SIM_ORIGIN ?? '');
+  return configured.trim().replace(/\/+$/, '');
+}
+
+async function startRemoteCampaign(cls: PlayerClass): Promise<void> {
+  const origin = configuredRemoteSimOrigin();
+  if (!origin) throw new Error('remote simulation endpoint is not configured');
+
+  stopShaderWarmup();
+  if (!(await prepareWorldEntry())) return;
+  audio.init();
+  music.init();
+  sfx.init();
+
+  resetLoadProfile();
+  loadPhaseStart('entry');
+  loadPhaseStart('realm-connect');
+  enterLoadingState(t('loading.connectingRealm'));
+
+  // Reuse the donor engine's IWorld network mirror, but connect it to our
+  // stripped one-player Sim service rather than the MMO account/realm server.
+  const world = new ClientWorld(remoteTokenForClass(cls), 1, cls, origin, getClientSeed());
+
+  let started = false;
+  const proceedToGame = () => {
+    if (started) return;
+    started = true;
+    entryWatch.cancel();
+    loadPhaseEnd('realm-connect');
+    void startGame(world, null, world, `remote-sim:${cls}`, false);
+  };
+
+  const entryWatch = watchWorldEntry(
+    world,
+    proceedToGame,
+    () => {
+      world.close();
+      hideReconnectOverlay();
+      fatalOverlay(t('loading.enterTimeout'));
+    },
+  );
+
+  world.onDisconnect = (reason) => {
+    entryWatch.cancel();
+    hideReconnectOverlay();
+    fatalOverlay(userFacingApiError(reason));
+  };
+  world.onConnectionLost = (attempt, maxAttempts, nextRetryAtMs) => {
+    entryWatch.noteActivity(nextRetryAtMs);
+    showReconnectOverlay(attempt, maxAttempts, nextRetryAtMs);
+  };
+  world.onReconnected = () => hideReconnectOverlay();
+}
+
 async function enterWorld(c: CharacterSummary, button?: HTMLButtonElement): Promise<void> {
   stopShaderWarmup();
   try {
@@ -9204,6 +9262,9 @@ function wireStartScreens(): void {
   const onlineBtn = $('#btn-online');
   const offlineBtn = $('#btn-offline');
   const btnStartOffline = $('#btn-start-offline') as HTMLButtonElement;
+  const btnStartRemote = $('#btn-start-remote') as HTMLButtonElement | null;
+  const remoteSimStatus = $('#remote-sim-status');
+  const remoteSimAvailable = configuredRemoteSimOrigin().length > 0;
   const offlineNameInput = $('#char-name') as HTMLInputElement;
   const offlineError = $('#offline-error');
   // The inherited local Sim is now the authoritative single-player runtime.
@@ -9293,6 +9354,12 @@ function wireStartScreens(): void {
       c.setAttribute('aria-pressed', 'false');
     });
     btnStartOffline.setAttribute('disabled', '');
+    btnStartRemote?.setAttribute('disabled', '');
+    if (remoteSimStatus) {
+      remoteSimStatus.textContent = remoteSimAvailable
+        ? 'A/B test ready: choose a class, then play locally or move the authoritative simulation to the remote test server.'
+        : 'Remote Simulation is not configured on this build yet. Local Device remains available.';
+    }
     const details = $('#offline-class-details');
     if (details) details.innerHTML = '';
     const hook = $('#campaign-class-hook');
@@ -9509,6 +9576,25 @@ function wireStartScreens(): void {
     });
   }
 
+  btnStartRemote?.addEventListener('click', () => {
+    const selCard = document.querySelector(
+      '#offline-select .mini-class.sel',
+    ) as HTMLElement | null;
+    if (!selCard) {
+      offlineError.textContent = t('errors.selectClass');
+      return;
+    }
+    if (!remoteSimAvailable) {
+      offlineError.textContent = 'Remote simulation server is not configured for this build.';
+      return;
+    }
+    offlineError.textContent = '';
+    void startRemoteCampaign(selCard.dataset.class as PlayerClass).catch((err) => {
+      console.error('[remote-sim] failed to start', err);
+      fatalOverlay(t('loading.enterTimeout'));
+    });
+  });
+
   // offline class chips
   document.querySelectorAll('#offline-select .mini-class').forEach((card) => {
     const handleClassSelect = () => {
@@ -9532,6 +9618,7 @@ function wireStartScreens(): void {
       const hook = $('#campaign-class-hook');
       if (hook) hook.textContent = classMemoryHook(cls);
       btnStartOffline.removeAttribute('disabled');
+      if (remoteSimAvailable) btnStartRemote?.removeAttribute('disabled');
       refreshOfflineSkins(cls);
     };
     card.addEventListener('click', handleClassSelect);
