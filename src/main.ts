@@ -9293,6 +9293,8 @@ function wireStartScreens(): void {
       c.setAttribute('aria-pressed', 'false');
     });
     btnStartOffline.setAttribute('disabled', '');
+    const details = $('#offline-class-details');
+    if (details) details.innerHTML = '';
     const hook = $('#campaign-class-hook');
     if (hook) {
       hook.textContent =
@@ -9362,7 +9364,7 @@ function wireStartScreens(): void {
 
   if (serverSelect && serverTrigger && serverMenu && btnPlay) {
     type ServerMode = 'online' | 'offline';
-    // Avalon 30K is intentionally single-player. Keep the inherited online
+    // This project is intentionally single-player. Keep the inherited online
     // machinery dormant for now, but remove it from the normal player-facing
     // world picker while we unwind its dependencies safely.
     $('#server-opt-online')?.setAttribute('hidden', '');
