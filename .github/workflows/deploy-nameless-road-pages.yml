@@ -23,7 +23,7 @@ jobs:
       - name: Checkout playable slice
         uses: actions/checkout@v6
         with:
-          ref: nameless-road-v0.1-playable-slice
+          ref: nameless-road-v0.1.2-remote-sim-experiment
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -53,7 +53,7 @@ jobs:
           WOC_SINGLEPLAYER_WEB: '1'
           WOC_EXTERNAL_PUBLIC_ASSETS: '1'
           VITE_SITE_BASE: /Avalon-30k/
-          VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/nameless-road-v0.1-playable-slice/public
+          VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/nameless-road-v0.1.2-remote-sim-experiment/public
         run: pnpm vite build
 
       - name: Add minimal install assets
