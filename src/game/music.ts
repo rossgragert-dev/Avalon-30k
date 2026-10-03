@@ -4411,7 +4411,9 @@ export class MusicDirector {
   private ensureBossElement(): HTMLAudioElement | null {
     if (this.bossElement) return this.bossElement;
     if (typeof Audio !== 'function') return null;
-    const el = new Audio(staticAssetUrl('/audio/dungeon-boss-fight.mp3'));
+    const el = new Audio();
+    el.crossOrigin = 'anonymous';
+    el.src = staticAssetUrl('/audio/dungeon-boss-fight.mp3');
     el.loop = true;
     el.preload = 'auto';
     this.bossElement = el;
@@ -4522,7 +4524,9 @@ export class MusicDirector {
   /** Create and wire the looping, progressively-downloaded media element. */
   private ensureElement(stream: StreamTrack): void {
     if (stream.el || !this.ctx || typeof Audio !== 'function') return;
-    const el = new Audio(stream.url);
+    const el = new Audio();
+    el.crossOrigin = 'anonymous';
+    el.src = stream.url;
     el.loop = true;
     el.preload = 'auto';
     try {
