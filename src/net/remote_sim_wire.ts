@@ -93,9 +93,11 @@ export function remoteSelfWire(e: Entity, inputAck: number): Record<string, unkn
   }
 
   const charges: Record<string, number> = {};
-  for (const id in e.abilityCharges) {
-    const state = e.abilityCharges[id];
-    if (state) charges[id] = state.charges;
+  if (e.abilityCharges) {
+    for (const id in e.abilityCharges) {
+      const state = e.abilityCharges[id];
+      if (state) charges[id] = state.charges;
+    }
   }
 
   return {
