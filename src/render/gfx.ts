@@ -1616,39 +1616,39 @@ function settingsFor(tier: GfxTier, hints?: Partial<GfxRuntimeHints>): GfxSettin
 
   const thermalResolution = {
     ...GFX_BUCKET_BANDS.low.resolution,
-    min: 0.45,
-    baseline: 0.62,
-    max: 0.68,
+    min: 0.38,
+    baseline: 0.48,
+    max: 0.58,
   };
   const thermalGrass = {
     ...GFX_BUCKET_BANDS.low.grass,
-    min: 0.3,
-    baseline: 0.38,
-    max: 0.45,
+    min: 0.18,
+    baseline: 0.24,
+    max: 0.3,
   };
   const thermalFoliage = {
     ...GFX_BUCKET_BANDS.low.foliage,
-    min: 0.3,
-    baseline: 0.4,
-    max: 0.48,
+    min: 0.18,
+    baseline: 0.24,
+    max: 0.3,
   };
   const thermalLighting = {
     ...GFX_BUCKET_BANDS.low.lighting,
-    min: 0.3,
-    baseline: 0.4,
-    max: 0.5,
+    min: 0.15,
+    baseline: 0.2,
+    max: 0.25,
   };
   const thermalVfx = {
     ...GFX_BUCKET_BANDS.low.vfx,
-    min: 0.35,
-    baseline: 0.45,
-    max: 0.55,
+    min: 0.22,
+    baseline: 0.28,
+    max: 0.34,
   };
   const thermalWorldStreaming = {
     ...GFX_BUCKET_BANDS.low.worldStreaming,
-    min: 0.2,
-    baseline: 0.32,
-    max: 0.42,
+    min: 0.15,
+    baseline: 0.22,
+    max: 0.3,
   };
   const thermalBands = {
     ...GFX_BUCKET_BANDS.low,
@@ -1669,8 +1669,8 @@ function settingsFor(tier: GfxTier, hints?: Partial<GfxRuntimeHints>): GfxSettin
     budget: {
       ...GFX_BUDGETS.low,
       targetFps: 30,
-      minRenderScaleMobile: 0.45,
-      maxRenderScale: 0.68,
+      minRenderScaleMobile: 0.38,
+      maxRenderScale: 0.58,
       dropFrameMs: 30,
       urgentFrameMs: 45,
       recoverFrameMs: 25,
@@ -1701,14 +1701,14 @@ function settingsFor(tier: GfxTier, hints?: Partial<GfxRuntimeHints>): GfxSettin
     canopyDetailTaps: CANOPY_TAPS_OFF,
     leanFoliage: true,
     denseDressing: false,
-    grassRadius: 24,
-    grassStep: 4.5,
+    grassRadius: 12,
+    grassStep: 6.5,
     grassCardsPerTuft: GRASS_CARDS_LEAN,
-    farGrassDensityFloor: 0.25,
+    farGrassDensityFloor: 0.1,
     windSway: false,
-    maxPointLights: 1,
-    maxPooledCharacterVisuals: 2,
-    maxPooledObjects: 2,
+    maxPointLights: 0,
+    maxPooledCharacterVisuals: 1,
+    maxPooledObjects: 1,
     farCharacterAnimScale: 1,
     vistaTier: 'low',
     waterTier: 'low',
