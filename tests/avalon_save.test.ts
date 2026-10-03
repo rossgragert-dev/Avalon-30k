@@ -46,7 +46,7 @@ const STATE = {
   arena2v2Rating: 0,
   arena2v2Wins: 0,
   arena2v2Losses: 0,
-} as CharacterState;
+} as unknown as CharacterState;
 
 describe('Avalon save slot', () => {
   it('round-trips the inherited CharacterState and optional appearance', () => {
