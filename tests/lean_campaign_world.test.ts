@@ -11,7 +11,7 @@ afterEach(() => setActiveWorldContent(null));
 describe('lean campaign world', () => {
   it('keeps only the minimal content needed for movement and combat testing', () => {
     expect(LEAN_CAMPAIGN_WORLD.zones).toHaveLength(1);
-    expect(LEAN_CAMPAIGN_ENEMY_COUNT).toBe(3);
+    expect(LEAN_CAMPAIGN_ENEMY_COUNT).toBe(2);
     expect(Object.keys(LEAN_CAMPAIGN_WORLD.npcs)).toHaveLength(0);
     expect(LEAN_CAMPAIGN_WORLD.groundObjects).toHaveLength(0);
     expect(LEAN_CAMPAIGN_WORLD.services?.stations).toHaveLength(0);
@@ -23,7 +23,7 @@ describe('lean campaign world', () => {
     }
   });
 
-  it('constructs a playable class Sim with only the authored three hostile mobs', () => {
+  it('constructs a playable class Sim with only the authored two hostile mobs', () => {
     setActiveWorldContent(LEAN_CAMPAIGN_WORLD);
     expect(getActiveWorldContent()).toBe(LEAN_CAMPAIGN_WORLD);
 
@@ -39,7 +39,7 @@ describe('lean campaign world', () => {
     const hostileMobs = [...sim.entities.values()].filter(
       (e) => e.kind === 'mob' && e.hostile && e.ownerId === null,
     );
-    expect(hostileMobs).toHaveLength(3);
+    expect(hostileMobs).toHaveLength(2);
     expect(hostileMobs.every((e) => e.templateId === 'forest_wolf')).toBe(true);
   });
 });
