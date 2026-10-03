@@ -2514,8 +2514,10 @@ export class Sim {
     if (!cfg.noPlayer) {
       this.ownPlayerPid = this.addPlayer(this.cfg.playerClass, this.cfg.playerName, {
         autoEquip: this.cfg.autoEquip,
+        state: cfg.playerState,
         // Carried through, never derived: the host allocated this id outside the
         // sim. Absent for a bare test/probe Sim, which then gathers unrecorded.
+        // A persisted local identity inside playerState supersedes this fresh one.
         localGathererIdentity: cfg.gathererIdentity ?? null,
       });
       // The compulsory tutorial starts ASHORE, not one greeting sweep later.
@@ -2525,9 +2527,10 @@ export class Sim {
       // worlds to show one. The greeting sweep's already-ashore arm then just
       // plays Odo's welcome. Online is unaffected: the server rolls the
       // newborn row at the same arrival (server/main.ts initialCharacterState).
-      const ownPlayer = this.cfg.compulsoryTutorial
-        ? this.entities.get(this.ownPlayerPid)
-        : undefined;
+      const ownPlayer =
+        this.cfg.compulsoryTutorial && cfg.playerState === undefined
+          ? this.entities.get(this.ownPlayerPid)
+          : undefined;
       if (ownPlayer) {
         ownPlayer.pos = this.groundPos(PROVING_SHORE_ARRIVAL.x, PROVING_SHORE_ARRIVAL.z);
         ownPlayer.prevPos = { ...ownPlayer.pos };
