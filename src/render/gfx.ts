@@ -1600,7 +1600,119 @@ function settingsFor(tier: GfxTier, hints?: Partial<GfxRuntimeHints>): GfxSettin
       };
     }
   }
-  return applyGfxOverridesFromSearch(settings, hints?.search ?? '');
+  const searchAdjusted = applyGfxOverridesFromSearch(settings, hints?.search ?? '');
+
+  // Nameless Road iPhone thermal profile.
+  //
+  // ClaudeCraft's stock iOS memory profile protects against WebContent eviction,
+  // but our sustained iPhone test still reached the OS thermal dimming threshold.
+  // For narrow iOS devices we therefore prioritize heat stability over fidelity:
+  // cap drawing-buffer work, remove duplicate/post passes, shorten cosmetic
+  // foliage, and retain almost no cold pooled scene objects. This is deliberately
+  // applied AFTER Advanced/query overrides so a saved desktop-oriented preset
+  // cannot accidentally defeat the mobile thermal guard.
+  const iphoneThermalProfile = iosMemoryProfile && hints?.narrowViewport === true;
+  if (!iphoneThermalProfile) return searchAdjusted;
+
+  const thermalResolution = {
+    ...GFX_BUCKET_BANDS.low.resolution,
+    min: 0.45,
+    baseline: 0.62,
+    max: 0.68,
+  };
+  const thermalGrass = {
+    ...GFX_BUCKET_BANDS.low.grass,
+    min: 0.3,
+    baseline: 0.38,
+    max: 0.45,
+  };
+  const thermalFoliage = {
+    ...GFX_BUCKET_BANDS.low.foliage,
+    min: 0.3,
+    baseline: 0.4,
+    max: 0.48,
+  };
+  const thermalLighting = {
+    ...GFX_BUCKET_BANDS.low.lighting,
+    min: 0.3,
+    baseline: 0.4,
+    max: 0.5,
+  };
+  const thermalVfx = {
+    ...GFX_BUCKET_BANDS.low.vfx,
+    min: 0.35,
+    baseline: 0.45,
+    max: 0.55,
+  };
+  const thermalWorldStreaming = {
+    ...GFX_BUCKET_BANDS.low.worldStreaming,
+    min: 0.2,
+    baseline: 0.32,
+    max: 0.42,
+  };
+  const thermalBands = {
+    ...GFX_BUCKET_BANDS.low,
+    resolution: thermalResolution,
+    grass: thermalGrass,
+    foliage: thermalFoliage,
+    lighting: thermalLighting,
+    vfx: thermalVfx,
+    worldStreaming: thermalWorldStreaming,
+  };
+
+  return {
+    ...searchAdjusted,
+    tier: 'low',
+    effectsTier: 'low',
+    bucketBands: thermalBands,
+    bucketBaselines: bucketBaselines(thermalBands),
+    budget: {
+      ...GFX_BUDGETS.low,
+      targetFps: 30,
+      minRenderScaleMobile: 0.45,
+      maxRenderScale: 0.68,
+      dropFrameMs: 30,
+      urgentFrameMs: 45,
+      recoverFrameMs: 25,
+      recoverStableSeconds: 10,
+    },
+    autoGovernor: true,
+    composer: false,
+    gradePass: false,
+    ao: false,
+    aoFullRes: false,
+    bloom: false,
+    smaa: false,
+    fxaa: false,
+    msaaSamples: 0,
+    pixelRatioCap: 1,
+    dynamicShadows: false,
+    terrainCastShadows: false,
+    shadowMap: 512,
+    standardMaterials: false,
+    surfaceDetail: false,
+    surfaceDetailTaps: 0,
+    surfaceDetailClampK: 0,
+    terrainSplat: false,
+    terrainRelief: 0,
+    bladeCarpetRadius: 0,
+    cliffScree: false,
+    canopyDetail: false,
+    canopyDetailTaps: CANOPY_TAPS_OFF,
+    leanFoliage: true,
+    denseDressing: false,
+    grassRadius: 24,
+    grassStep: 4.5,
+    grassCardsPerTuft: GRASS_CARDS_LEAN,
+    farGrassDensityFloor: 0.25,
+    windSway: false,
+    maxPointLights: 1,
+    maxPooledCharacterVisuals: 2,
+    maxPooledObjects: 2,
+    farCharacterAnimScale: 1,
+    vistaTier: 'low',
+    waterTier: 'low',
+  };
 }
 
 export function forcedTierFromSearch(search: string): GfxTier | null {
