@@ -11,6 +11,7 @@
 // extension support flags, so a 1x1 throwaway renderer is enough; it is released
 // immediately (browsers cap ~16 live WebGL contexts, see context_release.ts).
 import * as THREE from 'three';
+import { staticAssetUrl } from '../../static_asset_url';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import {
   isKtx2MipReleaseEnabled,
@@ -22,7 +23,7 @@ import {
 // Served verbatim from public/basis/ in every host (vite dev, the deployed
 // site, the Capacitor native bundle, the Electron app scheme). The files are
 // deliberately not media-manifest hashed: KTX2Loader fetches them by path.
-const TRANSCODER_PATH = '/basis/';
+const TRANSCODER_PATH = staticAssetUrl('/basis/');
 
 let ktx2: KTX2Loader | null = null;
 

@@ -9027,6 +9027,9 @@ export interface SimConfig {
   respawnSeconds?: number;
   autoEquip?: boolean; // auto-equip better gear on loot (headless convenience)
   playerName?: string;
+  // Optional primary-character save supplied by a local/single-player host.
+  // Inline type import avoids a runtime dependency/cycle with character_state.ts.
+  playerState?: import('./character_state').CharacterState;
   noPlayer?: boolean; // multiplayer server: start with an empty world and addPlayer() later
   devCommands?: boolean; // local dev: /dev level|tp|give chat cheats
   worldPvpDisabled?: boolean; // realm kill switch for the /pvp flag (server env WORLD_PVP_DISABLED=1)

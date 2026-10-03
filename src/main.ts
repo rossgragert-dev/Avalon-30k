@@ -180,6 +180,15 @@ import { mouselookReleaseFacing } from './game/mouselook_release';
 import { music } from './game/music';
 import { tryNearbyInteraction } from './game/nearby_interaction';
 import { nextNpcTargetForWorld } from './game/npc_cycle';
+import {
+  CAMPAIGN_PROTAGONIST_NAME,
+  classMemoryHook,
+} from './game/campaign_identity';
+import {
+  clearCampaignSave,
+  readCampaignSave,
+  writeCampaignSave,
+} from './game/campaign_save';
 import { isOfflineModeAvailable } from './game/offline_mode_gate';
 import { offlineWorldConfig } from './game/offline_world_config';
 import { interpolatedOnlineSelfFacing } from './game/online_facing_mirror';
@@ -5132,29 +5141,35 @@ async function startGame(
 // Offline flow
 // ---------------------------------------------------------------------------
 
-// Offline names go straight into innerHTML paths (quest $N text, char window
-// title), so enforce the server's character-name rule client-side too:
-// strip anything outside [A-Za-z' -], then require /^[A-Za-z][A-Za-z' -]{1,15}$/.
-function sanitizeOfflineName(raw: string): string {
-  const stripped = raw
-    .replace(/[^A-Za-z' -]/g, '')
-    .replace(/^[^A-Za-z]+/, '')
-    .slice(0, 16);
-  return /^[A-Za-z][A-Za-z' -]{1,15}$/.test(stripped) ? stripped : 'Adventurer';
-}
+let stopCampaignAutosave: (() => void) | null = null;
 
+// The real campaign and the donor engine's editor/test tools share this local
+// runtime. campaignMode is the explicit fence that decides whether this session
+// may read or write the player's persistent single-player save.
 async function startOffline(
   playerClass: PlayerClass,
   name: string,
   skin = 0,
   world?: WorldContent,
   seedOverride?: number,
+  campaignMode: 'new' | 'continue' | null = null,
 ): Promise<void> {
   stopShaderWarmup();
   if (!(await prepareWorldEntry())) return;
   resetLoadProfile();
   loadPhaseStart('entry');
   enterLoadingState(t('loading.world'));
+  // Editor playtests, diagnostics, screenshots and balance probes also use
+  // startOffline. Only an explicit campaignMode may touch the real save slot.
+  const isCampaignSession =
+    campaignMode !== null && world === undefined && seedOverride === undefined;
+  const campaignSave =
+    isCampaignSession && campaignMode === 'continue'
+      ? readCampaignSave(localStorageOrNull())
+      : null;
+  const effectiveClass = campaignSave?.playerClass ?? playerClass;
+  const effectiveName = campaignSave?.name ?? name;
+
   // Editor play-test: route terrain + props at the custom world too (the renderer
   // reaches it by module global), in addition to the Sim reading cfg.world.
   if (world) setActiveWorldContent(world);
@@ -5163,15 +5178,17 @@ async function startOffline(
     () =>
       new Sim(
         offlineWorldConfig({
-          playerClass,
-          name,
+          playerClass: effectiveClass,
+          name: effectiveName,
+          playerState: campaignSave?.state,
+          campaignSession: isCampaignSession,
           world,
           seedOverride,
           devCommands: import.meta.env.DEV,
         }),
       ),
   );
-  sim.setPlayerSkin(sim.playerId, skin);
+  if (!campaignSave) sim.setPlayerSkin(sim.playerId, skin);
   // Offline has no account and no character row, so the local draft IS this
   // character's authored look and the creator's toggle IS its helm choice.
   // Stamped onto the entity because that is where every consumer reads a look
@@ -5179,11 +5196,12 @@ async function startOffline(
   // composes nothing and falls back to the fixed class rig.
   const offlinePlayer = sim.entities.get(sim.playerId);
   if (offlinePlayer) {
-    // The entity field is deliberately opaque (the sim must not depend on the
-    // render layer's ModularAppearance), so the interface needs the cast an
-    // online wire payload does not.
-    offlinePlayer.modularAppearance = modularAppearance as unknown as Record<string, unknown>;
-    offlinePlayer.helmHidden = !creationHelm;
+    // Modular appearance lives outside CharacterState upstream, so the campaign
+    // save stores it beside the character blob.
+    offlinePlayer.modularAppearance =
+      campaignSave?.appearance ??
+      (modularAppearance as unknown as Record<string, unknown>);
+    if (!campaignSave) offlinePlayer.helmHidden = !creationHelm;
   }
   // Dev convenience: ?mech drops an offline session straight into the Combat Mech
   // cosmetic body holding a spread of class-usable weapons, to eyeball the held
@@ -5229,13 +5247,47 @@ async function startOffline(
       'fen_reaver_glaive',
       'tidereaver_gaff',
     ];
-    const usable = TEST_WEAPONS.filter((id) => ITEMS[id] && canEquipItem(playerClass, ITEMS[id]));
+    const usable = TEST_WEAPONS.filter((id) => ITEMS[id] && canEquipItem(effectiveClass, ITEMS[id]));
     for (const id of usable) sim.addItem(id, 1, sim.playerId);
     if (usable[0]) sim.equipItem(usable[0], sim.playerId);
   }
-  // Offline characters are not persisted (a fresh name is typed each session),
-  // so the only stable handle is class + name. Keybinds scope to that pair.
-  void startGame(sim, sim, null, `offline:${playerClass}:${name}`, true);
+  // The campaign reuses the engine's complete CharacterState save/restore path.
+  // Compatibility sessions remain disposable and can never touch this slot.
+  if (isCampaignSession) {
+    const persistCampaign = () => {
+      const state = sim.serializeCharacter(sim.playerId);
+      if (!state) return;
+      const player = sim.entities.get(sim.playerId);
+      const appearance =
+        player?.modularAppearance && typeof player.modularAppearance === 'object'
+          ? (player.modularAppearance as Record<string, unknown>)
+          : null;
+      writeCampaignSave(
+        localStorageOrNull(),
+        effectiveClass,
+        effectiveName,
+        state,
+        appearance,
+      );
+    };
+
+    stopCampaignAutosave?.();
+    const interval = window.setInterval(persistCampaign, 10_000);
+    const onPageHide = () => persistCampaign();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') persistCampaign();
+    };
+    window.addEventListener('pagehide', onPageHide);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    stopCampaignAutosave = () => {
+      window.clearInterval(interval);
+      window.removeEventListener('pagehide', onPageHide);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+    persistCampaign();
+  }
+
+  void startGame(sim, sim, null, `offline:${effectiveClass}:${effectiveName}`, true);
 }
 
 // ---------------------------------------------------------------------------
@@ -9154,9 +9206,8 @@ function wireStartScreens(): void {
   const btnStartOffline = $('#btn-start-offline') as HTMLButtonElement;
   const offlineNameInput = $('#char-name') as HTMLInputElement;
   const offlineError = $('#offline-error');
-  // Offline mode runs an unauthenticated local Sim with no server authority:
-  // a dev/local-testing convenience only. Disabled in production builds,
-  // unchanged (enabled) under `npm run dev`.
+  // The inherited local Sim is now the authoritative single-player runtime.
+  // Online/server code remains temporarily as donor-engine scaffolding.
   const offlineAvailable = isOfflineModeAvailable(import.meta.env.DEV);
 
   const goToLoggedInPlay = () => {
@@ -9215,54 +9266,39 @@ function wireStartScreens(): void {
   };
 
   const handleOfflineStart = (cls: PlayerClass) => {
-    const rawName = offlineNameInput.value.trim();
-    if (!rawName) {
-      offlineError.textContent = t('errors.characterNameRequired');
-      offlineNameInput.classList.add('user-invalid-fallback');
-      offlineNameInput.setAttribute('aria-invalid', 'true');
-      offlineNameInput.focus();
-      return;
-    }
-    if (!validateCharacterName(rawName)) {
-      offlineError.textContent = t('errors.characterNameInvalid');
-      offlineNameInput.classList.add('user-invalid-fallback');
-      offlineNameInput.setAttribute('aria-invalid', 'true');
-      offlineNameInput.focus();
-      return;
-    }
-
     offlineError.textContent = '';
-    offlineNameInput.classList.remove('user-invalid-fallback');
-    offlineNameInput.removeAttribute('aria-invalid');
+    offlineNameInput.value = CAMPAIGN_PROTAGONIST_NAME;
 
     audio.init();
     music.init();
     sfx.init();
-    const name = sanitizeOfflineName(rawName);
-    void startOffline(cls, name, selectedSkin('#offline-skin-row', offlineSkin));
+    clearCampaignSave(localStorageOrNull());
+    void startOffline(
+      cls,
+      CAMPAIGN_PROTAGONIST_NAME,
+      selectedSkin('#offline-skin-row', offlineSkin),
+      undefined,
+      undefined,
+      'new',
+    );
   };
 
   const handleOfflineSelect = () => {
-    // Defensive: inert no-op in production even if some caller reaches this
-    // (e.g. a stale E2E script driving the hidden #btn-offline trigger),
-    // since the dropdown option and trigger are also not wired below.
     if (!offlineAvailable) return;
     show('#offline-select');
 
-    // Select warrior by default and render details
-    const warriorCard = document.querySelector(
-      '#offline-select .mini-class[data-class="warrior"]',
-    ) as HTMLElement | null;
-    if (warriorCard) {
-      document.querySelectorAll('#offline-select .mini-class').forEach((c) => {
-        c.classList.remove('sel');
-        c.setAttribute('aria-pressed', 'false');
-      });
-      warriorCard.classList.add('sel');
-      warriorCard.setAttribute('aria-pressed', 'true');
-      renderClassDetails('offline-class-details', 'warrior');
-      btnStartOffline.removeAttribute('disabled');
-      refreshOfflineSkins('warrior');
+    offlineNameInput.value = CAMPAIGN_PROTAGONIST_NAME;
+    document.querySelectorAll('#offline-select .mini-class').forEach((c) => {
+      c.classList.remove('sel');
+      c.setAttribute('aria-pressed', 'false');
+    });
+    btnStartOffline.setAttribute('disabled', '');
+    const details = $('#offline-class-details');
+    if (details) details.innerHTML = '';
+    const hook = $('#campaign-class-hook');
+    if (hook) {
+      hook.textContent =
+        'Select a class. This is not your full identity; it is simply the first thing your forgotten life gives back to you.';
     }
   };
 
@@ -9285,9 +9321,9 @@ function wireStartScreens(): void {
     }
   }
 
-  // --- Play console: realm dropdown + single Play CTA -----------------------
-  // The dropdown only chooses the destination (defaults to Online); the Play
-  // button commits, routing to the same online/offline flows as the legacy cards.
+  // --- Play console: single-player-first entry ------------------------------
+  // The inherited selector remains as compatibility scaffolding, but the
+  // project now defaults to the local single-player campaign.
   // play.html has no dropdown: its Play button commits straight to online below.
   const serverSelect = $('#server-select');
   const serverTrigger = $('#server-select-trigger') as HTMLButtonElement | null;
@@ -9297,25 +9333,52 @@ function wireStartScreens(): void {
   const serverTriggerDot = (serverTrigger?.querySelector('.server-dot') ??
     null) as HTMLElement | null;
   const btnPlay = $('#btn-play') as HTMLButtonElement;
+  const btnNewGame = $('#btn-new-game') as HTMLButtonElement | null;
+  const savedCampaignGame = readCampaignSave(localStorageOrNull());
+  const playLabel = btnPlay?.querySelector<HTMLElement>('.btn-play-label');
+  if (savedCampaignGame) {
+    if (playLabel) playLabel.textContent = 'Continue';
+    btnPlay?.setAttribute('aria-label', 'Continue The Nameless Road');
+    btnNewGame?.removeAttribute('hidden');
+  } else {
+    if (playLabel) playLabel.textContent = 'New Game';
+    btnNewGame?.setAttribute('hidden', '');
+  }
+
+  const continueCampaignGame = () => {
+    if (!savedCampaignGame) return;
+    audio.init();
+    music.init();
+    sfx.init();
+    void startOffline(
+      savedCampaignGame.playerClass,
+      savedCampaignGame.name,
+      0,
+      undefined,
+      undefined,
+      'continue',
+    );
+  };
+
+  btnNewGame?.addEventListener('click', handleOfflineSelect);
 
   if (serverSelect && serverTrigger && serverMenu && btnPlay) {
     type ServerMode = 'online' | 'offline';
-    // Production builds hide the Offline dropdown option outright, so it can
-    // neither be selected by mouse/keyboard nor land in serverOptions below.
-    if (!offlineAvailable) {
-      $('#server-opt-offline')?.setAttribute('hidden', '');
-    }
+    // This project is intentionally single-player. Keep the inherited online
+    // machinery dormant for now, but remove it from the normal player-facing
+    // world picker while we unwind its dependencies safely.
+    $('#server-opt-online')?.setAttribute('hidden', '');
     const serverOptions = Array.from(
       serverMenu.querySelectorAll<HTMLElement>('.server-select-option:not([hidden])'),
     );
-    const VALUE_KEY: Record<ServerMode, TranslationKey> = {
-      online: 'mode.serverOnline',
-      offline: 'mode.serverOffline',
+    const VALUE_LABEL: Record<ServerMode, string> = {
+      online: 'Online',
+      offline: 'Single Player',
     };
     // The trigger sub-line shows live realm stats for Online and a short blurb
     // for Offline; toggle the matching child by its data-mode.
     const subParts = Array.from(serverSub.querySelectorAll<HTMLElement>('[data-mode]'));
-    let serverMode: ServerMode = 'online';
+    let serverMode: ServerMode = 'offline';
 
     const setActiveOption = (opt: HTMLElement | null): void => {
       serverOptions.forEach((o) => {
@@ -9329,8 +9392,8 @@ function wireStartScreens(): void {
       serverSelect.dataset.mode = mode;
       // Update both the i18n key and the rendered text, so a later language
       // switch (translatePage) re-renders the *selected* mode correctly.
-      serverValue.setAttribute('data-i18n', VALUE_KEY[mode]);
-      serverValue.textContent = t(VALUE_KEY[mode]);
+      serverValue.removeAttribute('data-i18n');
+      serverValue.textContent = VALUE_LABEL[mode];
       subParts.forEach((part) => {
         part.toggleAttribute('hidden', part.dataset.mode !== mode);
       });
@@ -9422,11 +9485,11 @@ function wireStartScreens(): void {
     });
 
     btnPlay.addEventListener('click', () => {
-      if (serverMode === 'offline') handleOfflineSelect();
-      else handleOnlineSelect();
+      if (savedCampaignGame) continueCampaignGame();
+      else handleOfflineSelect();
     });
 
-    applyServerMode('online');
+    applyServerMode('offline');
   } else if (btnPlay) {
     // Online-only entry (play.html): no realm dropdown in the console, so the
     // Play button commits straight to the online flow.
@@ -9466,6 +9529,8 @@ function wireStartScreens(): void {
 
       const cls = (card as HTMLElement).dataset.class as PlayerClass;
       renderClassDetails('offline-class-details', cls);
+      const hook = $('#campaign-class-hook');
+      if (hook) hook.textContent = classMemoryHook(cls);
       btnStartOffline.removeAttribute('disabled');
       refreshOfflineSkins(cls);
     };
@@ -9551,9 +9616,7 @@ function wireStartScreens(): void {
   const handleOfflineBack = () => {
     show('#mode-select');
     offlineError.textContent = '';
-    offlineNameInput.value = '';
-    offlineNameInput.classList.remove('user-invalid-fallback');
-    offlineNameInput.removeAttribute('aria-invalid');
+    offlineNameInput.value = CAMPAIGN_PROTAGONIST_NAME;
   };
   if (offlineBackBtn) offlineBackBtn.addEventListener('click', handleOfflineBack);
 

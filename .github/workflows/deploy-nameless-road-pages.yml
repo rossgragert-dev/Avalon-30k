@@ -1,0 +1,80 @@
+name: Deploy Nameless Road Browser Slice
+
+on:
+  push:
+    branches:
+      - nameless-road-v0.1-playable-slice
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.34.5 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run playable-slice tests
+        run: >
+          pnpm vitest run
+          tests/campaign_identity.test.ts
+          tests/campaign_save.test.ts
+          tests/campaign_primary_restore.test.ts
+          tests/offline_mode_gate.test.ts
+
+      - name: Build lightweight browser client
+        env:
+          WOC_SINGLEPLAYER_WEB: '1'
+          WOC_EXTERNAL_PUBLIC_ASSETS: '1'
+          VITE_SITE_BASE: /Avalon-30k/
+          VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/nameless-road-v0.1-playable-slice/public
+        run: pnpm vite build
+
+      - name: Add minimal install assets
+        run: |
+          cp public/manifest.webmanifest dist/manifest.webmanifest
+          cp public/icon-192.png dist/icon-192.png
+          cp public/icon-512.png dist/icon-512.png
+          cp public/apple-touch-icon.png dist/apple-touch-icon.png
+          touch dist/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
