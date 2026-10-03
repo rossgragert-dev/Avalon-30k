@@ -1,5 +1,5 @@
 {
-  "name": "avalon-30k",
+  "name": "the-nameless-road",
   "version": "0.44.3",
   "private": true,
   "license": "MIT",
@@ -9,7 +9,7 @@
   },
   "type": "module",
   "main": "electron/main.cjs",
-  "description": "Avalon 30K: a single-player open-world sci-fantasy RPG",
+  "description": "The Nameless Road: a replayable single-player fantasy RPG prototype",
   "scripts": {
     "dev": "vite",
     "release:check": "node scripts/release_version.mjs check",
@@ -175,8 +175,8 @@
     "steamworks.js": "^0.4.0"
   },
   "build": {
-    "appId": "com.avalon30k.game",
-    "productName": "Avalon 30K",
+    "appId": "com.namelessroad.game",
+    "productName": "The Nameless Road",
     "icon": "build/icon.png",
     "files": [
       "dist/**",
