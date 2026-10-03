@@ -1,62 +1,65 @@
-# Avalon 30K
+# The Nameless Road
 
-**Avalon 30K is a single-player open-world sci-fantasy RPG prototype.**
+**Working title.** This repository is being converted into a replayable, single-player fantasy RPG using the open-source **World of ClaudeCraft** codebase as its technical foundation.
 
-This repository is a fork of [World of ClaudeCraft](https://github.com/levy-street/world-of-claudecraft) and is being progressively converted into an original single-player game set in the Avalon 30K universe.
+## Core premise
 
-## Current status
+You begin with no reliable memory of your name, homeland, family, title, or allegiance. Travelers found you after a violent storm and carried you to a frontier settlement. You remember how the world works, and one set of skills returns instinctively.
 
-The project is at **v0.1 — Single-player foundation**.
+That first remembered skill is your **class**.
 
-The existing World of ClaudeCraft gameplay remains largely intact while the fork is separated from its MMO assumptions. The immediate goal is to preserve the systems that already work — movement, combat, quests, NPCs, inventory, progression, world simulation, rendering, controller/mobile support, and local play — while making **offline single-player the primary game path**.
+The long-term game is about two connected mysteries:
 
-The initial protagonist will be **Lancelot**. Existing internal class identifiers may remain temporarily as compatibility scaffolding, but Avalon 30K will ultimately be character-driven rather than based around an MMO class-selection screen.
+1. **Who were you?**
+2. **Who will you choose to become now?**
 
-See [docs/AVALON-30K-DIRECTION.md](docs/AVALON-30K-DIRECTION.md) for the design and conversion plan.
+The same world should support repeated playthroughs from different class perspectives. A Warrior may grow into a commander or unifier. A Mage may become a great sage studying dangerous ancient powers. A Rogue may uncover the same crisis through courts, hidden networks, and espionage. Other classes should reveal different pieces of the same larger mythology.
 
-## Target game
+## v0.1 playable-slice goal
 
-Avalon 30K is intended to become:
+The first slice proves the reusable loop before major world replacement:
 
-- a single-player open-world RPG;
-- a character-driven sci-fantasy adventure;
-- playable without accounts or an authoritative server;
-- built around exploration, combat, quests, equipment, progression, Resonance, and story;
-- capable of supporting recruitable AI companions;
-- browser/desktop/mobile friendly where the inherited engine makes that practical.
+- single-player production entry;
+- New Game / Continue;
+- choose any inherited playable class;
+- begin as the temporarily named **Wanderer**;
+- class-specific first memory hook;
+- retain inherited combat, equipment, talents, progression, quests, movement, camera, inventory, and open-world systems;
+- autosave the full inherited `CharacterState` every 10 seconds and on background/exit;
+- restore position, progression, inventory, equipment, quests, appearance, and chosen class with Continue;
+- isolate campaign saves from editor/test/diagnostic offline sessions;
+- bypass the donor MMO tutorial for campaign play.
 
-It is **not** intended to remain an MMORPG.
+The inherited world is temporary scenery for this slice. Replacing its locations, factions, quests, NPCs, lore, and restricted media is a later content phase.
 
-Systems such as guilds, PvP, matchmaking, shared realms, player markets, trading, online chat, leaderboards, Web3, and live-service features are considered legacy systems to disable or remove as the conversion progresses.
+## Design direction
 
-## Development approach
+The setting draws broad inspiration from mythic fantasy, Arthurian legend, deep-history fantasy, and dark high fantasy without copying their characters, factions, cosmology, terminology, or plots.
 
-We are intentionally converting the game incrementally rather than deleting the MMO architecture all at once.
+Current loose structure:
 
-Early milestones will preserve stable internal IDs and proven systems while replacing player-facing identity and routing. Once the single-player path is stable, deeper systems can be simplified or removed safely.
+- a frontier region built over the remains of a fallen civilization;
+- several rival kingdoms and powers moving toward conflict;
+- old ruins and roads becoming dangerous again;
+- an ancient force connected to the previous civilization's collapse;
+- a recurring symbol tied to both the central mystery and the protagonist's forgotten past;
+- shared world events with class-specific approaches, discoveries, and eventual identity outcomes.
 
-The original starter world may therefore remain temporarily as a **technical test environment** while Avalon 30K content is built.
+## Development
 
-## Technology inherited from World of ClaudeCraft
-
-The fork currently uses the upstream TypeScript/Three.js/Vite architecture and deterministic simulation core. World content is largely authored as TypeScript data, which allows zones, quests, enemies, NPCs, abilities, items, and progression to be replaced incrementally without rebuilding the rendering engine.
-
-For local development, the inherited offline path currently uses:
+Install dependencies and run the inherited Vite development client:
 
 ```bash
-npm install -g pnpm@10.34.5
-pnpm install --frozen-lockfile
-pnpm run dev
+npm install
+npm run dev
 ```
 
-The exact player entry flow will change as v0.1 removes the MMO-oriented mode selection.
+The donor project contains substantial server/MMO/live-service infrastructure. That code remains temporarily because removing tightly coupled systems all at once would create unnecessary regression risk. The normal player-facing path is being converted to local single-player first.
 
-## Licensing and upstream attribution
+## Upstream and licensing
 
-The World of ClaudeCraft **source code** is licensed under the MIT License. This fork retains the upstream license and notices.
+This project is derived from **World of ClaudeCraft** by Levy Street. Source code from the upstream project is MIT licensed and its copyright/license notices must be preserved.
 
-Media assets in the upstream repository have mixed licensing and are **not automatically covered by the MIT license**. The upstream `CREDITS.md` is the authority for those permissions. Avalon 30K will replace World of ClaudeCraft-branded, rights-reserved, permission-only, and unclear media as development progresses.
+Media assets in the upstream repository have mixed licensing. The upstream `CREDITS.md` remains the authority for asset provenance. Assets that are not clearly licensed for reuse must be replaced as this project develops.
 
-Original World of ClaudeCraft project:
-
-https://github.com/levy-street/world-of-claudecraft
+This fork is not affiliated with or endorsed by Levy Street.
