@@ -181,10 +181,14 @@ import { music } from './game/music';
 import { tryNearbyInteraction } from './game/nearby_interaction';
 import { nextNpcTargetForWorld } from './game/npc_cycle';
 import {
-  AVALON_PROTAGONIST_CLASS,
-  AVALON_PROTAGONIST_NAME,
-} from './game/avalon_identity';
-import { clearAvalonSave, readAvalonSave, writeAvalonSave } from './game/avalon_save';
+  CAMPAIGN_PROTAGONIST_NAME,
+  classMemoryHook,
+} from './game/campaign_identity';
+import {
+  clearCampaignSave,
+  readCampaignSave,
+  writeCampaignSave,
+} from './game/campaign_save';
 import { isOfflineModeAvailable } from './game/offline_mode_gate';
 import { offlineWorldConfig } from './game/offline_world_config';
 import { interpolatedOnlineSelfFacing } from './game/online_facing_mirror';
@@ -5137,34 +5141,34 @@ async function startGame(
 // Offline flow
 // ---------------------------------------------------------------------------
 
-let stopAvalonAutosave: (() => void) | null = null;
+let stopCampaignAutosave: (() => void) | null = null;
 
-// Avalon 30K normal play uses a fixed named protagonist. Legacy/editor offline
-// callers can still pass their own class/name through this compatibility entry.
+// The real campaign and the donor engine's editor/test tools share this local
+// runtime. campaignMode is the explicit fence that decides whether this session
+// may read or write the player's persistent single-player save.
 async function startOffline(
   playerClass: PlayerClass,
   name: string,
   skin = 0,
   world?: WorldContent,
   seedOverride?: number,
-  loadAvalonSave = false,
+  campaignMode: 'new' | 'continue' | null = null,
 ): Promise<void> {
   stopShaderWarmup();
   if (!(await prepareWorldEntry())) return;
   resetLoadProfile();
   loadPhaseStart('entry');
   enterLoadingState(t('loading.world'));
-  // Only the named Avalon campaign may touch the real save slot. The inherited
-  // offline runtime is also used by editor playtests, diagnostics, screenshots,
-  // and balance probes; those compatibility sessions must never overwrite a
-  // player's Lancelot campaign.
-  const isAvalonCampaign =
-    playerClass === AVALON_PROTAGONIST_CLASS &&
-    name === AVALON_PROTAGONIST_NAME &&
-    world === undefined &&
-    seedOverride === undefined;
-  const avalonSave =
-    isAvalonCampaign && loadAvalonSave ? readAvalonSave(localStorageOrNull()) : null;
+  // Editor playtests, diagnostics, screenshots and balance probes also use
+  // startOffline. Only an explicit campaignMode may touch the real save slot.
+  const isCampaignSession =
+    campaignMode !== null && world === undefined && seedOverride === undefined;
+  const campaignSave =
+    isCampaignSession && campaignMode === 'continue'
+      ? readCampaignSave(localStorageOrNull())
+      : null;
+  const effectiveClass = campaignSave?.playerClass ?? playerClass;
+  const effectiveName = campaignSave?.name ?? name;
 
   // Editor play-test: route terrain + props at the custom world too (the renderer
   // reaches it by module global), in addition to the Sim reading cfg.world.
@@ -5174,16 +5178,17 @@ async function startOffline(
     () =>
       new Sim(
         offlineWorldConfig({
-          playerClass,
-          name,
-          playerState: avalonSave?.state,
+          playerClass: effectiveClass,
+          name: effectiveName,
+          playerState: campaignSave?.state,
+          campaignSession: isCampaignSession,
           world,
           seedOverride,
           devCommands: import.meta.env.DEV,
         }),
       ),
   );
-  if (!avalonSave) sim.setPlayerSkin(sim.playerId, skin);
+  if (!campaignSave) sim.setPlayerSkin(sim.playerId, skin);
   // Offline has no account and no character row, so the local draft IS this
   // character's authored look and the creator's toggle IS its helm choice.
   // Stamped onto the entity because that is where every consumer reads a look
@@ -5191,12 +5196,12 @@ async function startOffline(
   // composes nothing and falls back to the fixed class rig.
   const offlinePlayer = sim.entities.get(sim.playerId);
   if (offlinePlayer) {
-    // Modular appearance lives outside CharacterState upstream. Avalon stores it
-    // beside the state so Continue can restore the same authored Lancelot look.
+    // Modular appearance lives outside CharacterState upstream, so the campaign
+    // save stores it beside the character blob.
     offlinePlayer.modularAppearance =
-      avalonSave?.appearance ??
+      campaignSave?.appearance ??
       (modularAppearance as unknown as Record<string, unknown>);
-    if (!avalonSave) offlinePlayer.helmHidden = !creationHelm;
+    if (!campaignSave) offlinePlayer.helmHidden = !creationHelm;
   }
   // Dev convenience: ?mech drops an offline session straight into the Combat Mech
   // cosmetic body holding a spread of class-usable weapons, to eyeball the held
@@ -5242,14 +5247,14 @@ async function startOffline(
       'fen_reaver_glaive',
       'tidereaver_gaff',
     ];
-    const usable = TEST_WEAPONS.filter((id) => ITEMS[id] && canEquipItem(playerClass, ITEMS[id]));
+    const usable = TEST_WEAPONS.filter((id) => ITEMS[id] && canEquipItem(effectiveClass, ITEMS[id]));
     for (const id of usable) sim.addItem(id, 1, sim.playerId);
     if (usable[0]) sim.equipItem(usable[0], sim.playerId);
   }
-  // Avalon 30K turns the inherited local Sim into a real single-player save.
-  // Editor/diagnostic compatibility sessions remain disposable.
-  if (isAvalonCampaign) {
-    const persistAvalon = () => {
+  // The campaign reuses the engine's complete CharacterState save/restore path.
+  // Compatibility sessions remain disposable and can never touch this slot.
+  if (isCampaignSession) {
+    const persistCampaign = () => {
       const state = sim.serializeCharacter(sim.playerId);
       if (!state) return;
       const player = sim.entities.get(sim.playerId);
@@ -5257,26 +5262,32 @@ async function startOffline(
         player?.modularAppearance && typeof player.modularAppearance === 'object'
           ? (player.modularAppearance as Record<string, unknown>)
           : null;
-      writeAvalonSave(localStorageOrNull(), state, appearance);
+      writeCampaignSave(
+        localStorageOrNull(),
+        effectiveClass,
+        effectiveName,
+        state,
+        appearance,
+      );
     };
 
-    stopAvalonAutosave?.();
-    const interval = window.setInterval(persistAvalon, 10_000);
-    const onPageHide = () => persistAvalon();
+    stopCampaignAutosave?.();
+    const interval = window.setInterval(persistCampaign, 10_000);
+    const onPageHide = () => persistCampaign();
     const onVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') persistAvalon();
+      if (document.visibilityState === 'hidden') persistCampaign();
     };
     window.addEventListener('pagehide', onPageHide);
     document.addEventListener('visibilitychange', onVisibilityChange);
-    stopAvalonAutosave = () => {
+    stopCampaignAutosave = () => {
       window.clearInterval(interval);
       window.removeEventListener('pagehide', onPageHide);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-    persistAvalon();
+    persistCampaign();
   }
 
-  void startGame(sim, sim, null, `offline:${playerClass}:${name}`, true);
+  void startGame(sim, sim, null, `offline:${effectiveClass}:${effectiveName}`, true);
 }
 
 // ---------------------------------------------------------------------------
@@ -9195,9 +9206,8 @@ function wireStartScreens(): void {
   const btnStartOffline = $('#btn-start-offline') as HTMLButtonElement;
   const offlineNameInput = $('#char-name') as HTMLInputElement;
   const offlineError = $('#offline-error');
-  // Avalon 30K uses the inherited local Sim as its authoritative single-player
-  // runtime. Online/server code remains in the fork temporarily as conversion
-  // scaffolding, but it is no longer the primary player entry path.
+  // The inherited local Sim is now the authoritative single-player runtime.
+  // Online/server code remains temporarily as donor-engine scaffolding.
   const offlineAvailable = isOfflineModeAvailable(import.meta.env.DEV);
 
   const goToLoggedInPlay = () => {
@@ -9255,50 +9265,38 @@ function wireStartScreens(): void {
     show('#login-panel');
   };
 
-  const handleOfflineStart = (_cls: PlayerClass) => {
-    // Avalon 30K is character-driven rather than class-driven. During v0.1
-    // Lancelot deliberately rides the inherited warrior id for compatibility,
-    // regardless of any legacy class chip a test harness may still activate.
+  const handleOfflineStart = (cls: PlayerClass) => {
     offlineError.textContent = '';
-    offlineNameInput.value = AVALON_PROTAGONIST_NAME;
-    offlineNameInput.classList.remove('user-invalid-fallback');
-    offlineNameInput.removeAttribute('aria-invalid');
+    offlineNameInput.value = CAMPAIGN_PROTAGONIST_NAME;
 
     audio.init();
     music.init();
     sfx.init();
-    clearAvalonSave(localStorageOrNull());
+    clearCampaignSave(localStorageOrNull());
     void startOffline(
-      AVALON_PROTAGONIST_CLASS,
-      AVALON_PROTAGONIST_NAME,
+      cls,
+      CAMPAIGN_PROTAGONIST_NAME,
       selectedSkin('#offline-skin-row', offlineSkin),
+      undefined,
+      undefined,
+      'new',
     );
   };
 
   const handleOfflineSelect = () => {
-    // Defensive: inert no-op in production even if some caller reaches this
-    // (e.g. a stale E2E script driving the hidden #btn-offline trigger),
-    // since the dropdown option and trigger are also not wired below.
     if (!offlineAvailable) return;
     show('#offline-select');
 
-    // Lancelot currently maps to the inherited warrior id. Keep that stable
-    // internal selection while the player-facing flow presents a named hero.
-    offlineNameInput.value = AVALON_PROTAGONIST_NAME;
-    offlineNameInput.readOnly = true;
-    const warriorCard = document.querySelector(
-      `#offline-select .mini-class[data-class="${AVALON_PROTAGONIST_CLASS}"]`,
-    ) as HTMLElement | null;
-    if (warriorCard) {
-      document.querySelectorAll('#offline-select .mini-class').forEach((c) => {
-        c.classList.remove('sel');
-        c.setAttribute('aria-pressed', 'false');
-      });
-      warriorCard.classList.add('sel');
-      warriorCard.setAttribute('aria-pressed', 'true');
-      renderClassDetails('offline-class-details', 'warrior');
-      btnStartOffline.removeAttribute('disabled');
-      refreshOfflineSkins('warrior');
+    offlineNameInput.value = CAMPAIGN_PROTAGONIST_NAME;
+    document.querySelectorAll('#offline-select .mini-class').forEach((c) => {
+      c.classList.remove('sel');
+      c.setAttribute('aria-pressed', 'false');
+    });
+    btnStartOffline.setAttribute('disabled', '');
+    const hook = $('#campaign-class-hook');
+    if (hook) {
+      hook.textContent =
+        'Select a class. This is not your full identity; it is simply the first thing your forgotten life gives back to you.';
     }
   };
 
@@ -9322,8 +9320,8 @@ function wireStartScreens(): void {
   }
 
   // --- Play console: single-player-first entry ------------------------------
-  // During the conversion the inherited selector remains as compatibility
-  // scaffolding, but Avalon 30K defaults to the local single-player Sim.
+  // The inherited selector remains as compatibility scaffolding, but the
+  // project now defaults to the local single-player campaign.
   // play.html has no dropdown: its Play button commits straight to online below.
   const serverSelect = $('#server-select');
   const serverTrigger = $('#server-select-trigger') as HTMLButtonElement | null;
@@ -9334,22 +9332,30 @@ function wireStartScreens(): void {
     null) as HTMLElement | null;
   const btnPlay = $('#btn-play') as HTMLButtonElement;
   const btnNewGame = $('#btn-new-game') as HTMLButtonElement | null;
-  const savedAvalonGame = readAvalonSave(localStorageOrNull());
+  const savedCampaignGame = readCampaignSave(localStorageOrNull());
   const playLabel = btnPlay?.querySelector<HTMLElement>('.btn-play-label');
-  if (savedAvalonGame) {
+  if (savedCampaignGame) {
     if (playLabel) playLabel.textContent = 'Continue';
-    btnPlay?.setAttribute('aria-label', 'Continue Avalon 30K');
+    btnPlay?.setAttribute('aria-label', 'Continue The Nameless Road');
     btnNewGame?.removeAttribute('hidden');
   } else {
     if (playLabel) playLabel.textContent = 'New Game';
     btnNewGame?.setAttribute('hidden', '');
   }
 
-  const continueAvalonGame = () => {
+  const continueCampaignGame = () => {
+    if (!savedCampaignGame) return;
     audio.init();
     music.init();
     sfx.init();
-    void startOffline(AVALON_PROTAGONIST_CLASS, AVALON_PROTAGONIST_NAME, 0, undefined, undefined, true);
+    void startOffline(
+      savedCampaignGame.playerClass,
+      savedCampaignGame.name,
+      0,
+      undefined,
+      undefined,
+      'continue',
+    );
   };
 
   btnNewGame?.addEventListener('click', handleOfflineSelect);
@@ -9477,7 +9483,7 @@ function wireStartScreens(): void {
     });
 
     btnPlay.addEventListener('click', () => {
-      if (savedAvalonGame) continueAvalonGame();
+      if (savedCampaignGame) continueCampaignGame();
       else handleOfflineSelect();
     });
 
@@ -9521,6 +9527,8 @@ function wireStartScreens(): void {
 
       const cls = (card as HTMLElement).dataset.class as PlayerClass;
       renderClassDetails('offline-class-details', cls);
+      const hook = $('#campaign-class-hook');
+      if (hook) hook.textContent = classMemoryHook(cls);
       btnStartOffline.removeAttribute('disabled');
       refreshOfflineSkins(cls);
     };
@@ -9606,9 +9614,7 @@ function wireStartScreens(): void {
   const handleOfflineBack = () => {
     show('#mode-select');
     offlineError.textContent = '';
-    offlineNameInput.value = '';
-    offlineNameInput.classList.remove('user-invalid-fallback');
-    offlineNameInput.removeAttribute('aria-invalid');
+    offlineNameInput.value = CAMPAIGN_PROTAGONIST_NAME;
   };
   if (offlineBackBtn) offlineBackBtn.addEventListener('click', handleOfflineBack);
 
