@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#050509" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-title" content="ClaudeCraft" />
+<meta name="apple-mobile-web-app-title" content="Avalon 30K" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="screen-orientation" content="landscape" />
 <meta name="orientation" content="landscape" />
-<title data-i18n="seo.title">World of ClaudeCraft: Classic-Style Web MMO</title>
-<meta name="description" data-i18n-content="seo.description" content="Play World of ClaudeCraft, a free browser MMO. Explore, complete quests, and run dungeons with friends. No download required." />
+<title>Avalon 30K — Single-Player Open-World RPG</title>
+<meta name="description" content="Avalon 30K is a single-player open-world sci-fantasy RPG prototype." />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="manifest" href="/manifest.webmanifest" />
 
@@ -895,14 +895,14 @@
 
     <div id="homepage-views-container">
       <section id="hero-view" class="view-section" aria-hidden="false">
-        <h1 class="visually-hidden" data-i18n="guide.brand">World of ClaudeCraft</h1>
+        <h1 class="visually-hidden">Avalon 30K</h1>
         <div class="website-story">
-          <img class="main-logo" id="title-logo" src="/worldofclaudecraft-logo.png" data-i18n-alt="serverUnavailable.logoAlt" alt="World of ClaudeCraft" />
+          <div class="main-logo" id="title-logo" role="img" aria-label="Avalon 30K">AVALON 30K</div>
           <p class="website-genre">
-            <span data-i18n="guide.home.eyebrow">Classic-style browser MMO</span>
+            <span>Single-player open-world sci-fantasy RPG</span>
           </p>
-          <h2 class="website-headline" data-i18n="landing.headline">Adventure with friends.</h2>
-          <p class="website-intro" data-i18n="guide.home.subtitle">Explore the world, take on quests, and tackle dungeons with friends.</p>
+          <h2 class="website-headline">The First Circle rides again.</h2>
+          <p class="website-intro">Begin as Lancelot, alone on an unfamiliar world, and uncover what waits beyond the horizon.</p>
           <div class="website-community-links">
           <a class="website-community" href="https://discord.com/invite/worldofclaudecraft" target="_blank" rel="noopener noreferrer">
             <span data-i18n="footer.discordLabel">Join the Discord</span>
@@ -919,31 +919,31 @@
           <div class="website-card-heading">
             <div class="website-card-eyebrow">
               <span class="website-card-emblem" aria-hidden="true"><img src="/icon-192.png" alt="" /></span>
-              <span data-i18n="mode.serverLabel">Choose your world</span>
+              <span>Game Mode</span>
             </div>
-            <h2 data-i18n="auth.enterRealm">Enter the World</h2>
+            <h2>Begin Avalon 30K</h2>
           </div>
           <div class="play-console">
             <!-- World selector: a themed dropdown that defaults to Online and can switch to Offline.
                  It only chooses the destination; the Play button below commits. -->
-            <div class="server-select" id="server-select" data-mode="online">
+            <div class="server-select" id="server-select" data-mode="offline">
               <button type="button" class="server-select-trigger" id="server-select-trigger"
                 aria-haspopup="listbox" aria-expanded="false" aria-controls="server-select-menu"
-                data-i18n-aria="mode.serverAria" aria-label="Select world: Online or Offline">
-                <span class="server-dot" data-mode="online" aria-hidden="true"></span>
+                aria-label="Single-player game mode">
+                <span class="server-dot" data-mode="offline" aria-hidden="true"></span>
                 <span class="server-select-text">
-                  <span class="server-select-value" id="server-select-value" data-i18n="mode.serverOnline">Online</span>
+                  <span class="server-select-value" id="server-select-value">Single Player</span>
                   <span class="server-select-sub" id="server-select-sub">
                     <span class="server-realm-line" data-mode="online">
                       <b class="stats-value js-stat-characters">…</b> <span data-i18n="stats.charactersCreated">Characters Created</span>
                     </span>
-                    <span class="server-sub-offline" data-mode="offline" data-i18n="mode.serverOfflineSub" hidden>Instant local world</span>
+                    <span class="server-sub-offline" data-mode="offline">Local open-world adventure</span>
                   </span>
                 </span>
                 <svg class="server-select-chevron" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </button>
               <div class="server-select-menu" id="server-select-menu" role="listbox" data-i18n-aria="mode.serverAria" aria-label="Select world: Online or Offline" hidden>
-                <div class="server-select-option is-selected" id="server-opt-online" role="option" data-mode="online" tabindex="-1" aria-selected="true">
+                <div class="server-select-option" id="server-opt-online" role="option" data-mode="online" tabindex="-1" aria-selected="false" hidden>
                   <span class="server-dot" data-mode="online" aria-hidden="true"></span>
                   <span class="server-opt-text">
                     <span class="server-opt-name" data-i18n="mode.serverOnline">Online</span>
@@ -954,20 +954,20 @@
                   </span>
                   <svg class="server-opt-check" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 </div>
-                <div class="server-select-option" id="server-opt-offline" role="option" data-mode="offline" tabindex="-1" aria-selected="false">
+                <div class="server-select-option is-selected" id="server-opt-offline" role="option" data-mode="offline" tabindex="-1" aria-selected="true">
                   <span class="server-dot" data-mode="offline" aria-hidden="true"></span>
                   <span class="server-opt-text">
-                    <span class="server-opt-name" data-i18n="mode.serverOffline">Offline</span>
-                    <span class="server-opt-desc" data-i18n="mode.offlineDesc">Instant single-player world in your browser. Nothing is saved: perfect for a quick brawl or testing.</span>
+                    <span class="server-opt-name">Single Player</span>
+                    <span class="server-opt-desc">A local open-world adventure. No account or shared realm required.</span>
                   </span>
                   <svg class="server-opt-check" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 </div>
               </div>
             </div>
 
-            <button type="button" class="btn-play" id="btn-play" data-i18n-aria="mode.playAria" aria-label="Play World of ClaudeCraft">
+            <button type="button" class="btn-play" id="btn-play" aria-label="Start Avalon 30K">
               <span class="btn-play-sheen" aria-hidden="true"></span>
-              <span class="btn-play-label" data-i18n="mode.play">Play</span>
+              <span class="btn-play-label">New Game</span>
               <span class="website-play-arrow" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
               </span>
@@ -1423,36 +1423,35 @@
         </div>
 
         <div id="offline-select" class="panel auth-panel auth-panel-premium cs-wow" hidden>
-          <h2 class="auth-title" data-i18n="auth.offlineCharacter">Offline Character</h2>
+          <h2 class="auth-title">New Game</h2>
           <div class="charselect-layout">
-            <!-- Left Column: Character Name & Class Chips & Actions -->
             <div class="charselect-col-left">
               <div class="char-create">
-                <label for="char-name" class="auth-label" data-i18n="auth.characterName">Character Name</label>
+                <label for="char-name" class="auth-label">Protagonist</label>
                 <div class="char-input-group">
-                  <input id="char-name" maxlength="16" data-i18n-placeholder="auth.characterNamePlaceholder" placeholder="Character name" value="" aria-describedby="offline-error" autocomplete="off" />
+                  <input id="char-name" maxlength="16" value="Lancelot" readonly aria-describedby="offline-error" autocomplete="off" />
                   <div id="offline-error" class="auth-error" aria-live="polite"></div>
                 </div>
                 <div class="mini-class-row">
-                  <button type="button" class="mini-class" data-class="warrior" data-i18n-aria="classes.warriorAria" data-i18n="classes.warrior" aria-label="Warrior class" aria-pressed="false">Warrior</button>
-                  <button type="button" class="mini-class" data-class="paladin" data-i18n-aria="classes.paladinAria" data-i18n="classes.paladin" aria-label="Paladin class" aria-pressed="false">Paladin</button>
-                  <button type="button" class="mini-class" data-class="hunter" data-i18n-aria="classes.hunterAria" data-i18n="classes.hunter" aria-label="Hunter class" aria-pressed="false">Hunter</button>
-                  <button type="button" class="mini-class" data-class="rogue" data-i18n-aria="classes.rogueAria" data-i18n="classes.rogue" aria-label="Rogue class" aria-pressed="false">Rogue</button>
-                  <button type="button" class="mini-class" data-class="priest" data-i18n-aria="classes.priestAria" data-i18n="classes.priest" aria-label="Priest class" aria-pressed="false">Priest</button>
-                  <button type="button" class="mini-class" data-class="shaman" data-i18n-aria="classes.shamanAria" data-i18n="classes.shaman" aria-label="Shaman class" aria-pressed="false">Shaman</button>
-                  <button type="button" class="mini-class" data-class="mage" data-i18n-aria="classes.mageAria" data-i18n="classes.mage" aria-label="Mage class" aria-pressed="false">Mage</button>
-                  <button type="button" class="mini-class" data-class="warlock" data-i18n-aria="classes.warlockAria" data-i18n="classes.warlock" aria-label="Warlock class" aria-pressed="false">Warlock</button>
-                  <button type="button" class="mini-class" data-class="druid" data-i18n-aria="classes.druidAria" data-i18n="classes.druid" aria-label="Druid class" aria-pressed="false">Druid</button>
+                  <button type="button" class="mini-class" data-class="warrior" aria-label="Lancelot, Knight of the First Circle" aria-pressed="false">Lancelot</button>
+                  <button type="button" class="mini-class" data-class="paladin" hidden aria-hidden="true" tabindex="-1">Paladin</button>
+                  <button type="button" class="mini-class" data-class="hunter" hidden aria-hidden="true" tabindex="-1">Hunter</button>
+                  <button type="button" class="mini-class" data-class="rogue" hidden aria-hidden="true" tabindex="-1">Rogue</button>
+                  <button type="button" class="mini-class" data-class="priest" hidden aria-hidden="true" tabindex="-1">Priest</button>
+                  <button type="button" class="mini-class" data-class="shaman" hidden aria-hidden="true" tabindex="-1">Shaman</button>
+                  <button type="button" class="mini-class" data-class="mage" hidden aria-hidden="true" tabindex="-1">Mage</button>
+                  <button type="button" class="mini-class" data-class="warlock" hidden aria-hidden="true" tabindex="-1">Warlock</button>
+                  <button type="button" class="mini-class" data-class="druid" hidden aria-hidden="true" tabindex="-1">Druid</button>
                 </div>
+                <p class="website-intro"><strong>Knight of the First Circle.</strong> Sword-focused combat now; deeper Avalon 30K abilities and Resonance progression will replace the inherited class kit in later milestones.</p>
                 <div id="offline-skin-row" class="skin-row"></div>
                 <div id="offline-appearance"></div>
                 <div class="auth-actions">
-                  <button type="button" class="btn btn-primary" id="btn-start-offline" data-i18n="auth.enterWorld">Enter World</button>
-                  <button type="button" class="btn btn-secondary" id="btn-offline-back" data-i18n="auth.back">Back</button>
+                  <button type="button" class="btn btn-primary" id="btn-start-offline">Begin</button>
+                  <button type="button" class="btn btn-secondary" id="btn-offline-back">Back</button>
                 </div>
               </div>
             </div>
-            <!-- Right Column: Detailed Class Info & Preview -->
             <div class="charselect-col-right">
               <div class="char-preview-container" id="offline-preview-container"></div>
               <div id="offline-class-details" class="class-details-panel" aria-live="polite"></div>
