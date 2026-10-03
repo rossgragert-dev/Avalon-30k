@@ -23,7 +23,7 @@ jobs:
       - name: Checkout iPhone thermal slice
         uses: actions/checkout@v6
         with:
-          ref: nameless-road-v0.1.3-iphone-thermal-profile
+          ref: 618c3bfd5da4750ff04ec68b63402ea4e046856a
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -54,7 +54,7 @@ jobs:
           WOC_SINGLEPLAYER_WEB: '1'
           WOC_EXTERNAL_PUBLIC_ASSETS: '1'
           VITE_SITE_BASE: /Avalon-30k/
-          VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/nameless-road-v0.1.3-iphone-thermal-profile/public
+          VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/618c3bfd5da4750ff04ec68b63402ea4e046856a/public
           VITE_REMOTE_SIM_ORIGIN: https://avalon-30k-to-nameless-road-remote-sim.onrender.com
         run: pnpm vite build
 
