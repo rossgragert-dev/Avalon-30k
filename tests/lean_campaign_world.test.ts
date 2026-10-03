@@ -20,9 +20,9 @@ describe('lean campaign world', () => {
     expect(LEAN_CAMPAIGN_ENEMY_COUNT).toBe(2);
     expect(Object.keys(LEAN_CAMPAIGN_WORLD.npcs)).toHaveLength(0);
     expect(LEAN_CAMPAIGN_WORLD.groundObjects).toHaveLength(0);
-    expect(LEAN_CAMPAIGN_WORLD.services?.stations).toHaveLength(0);
-    expect(LEAN_CAMPAIGN_WORLD.services?.mailboxes).toHaveLength(0);
-    expect(LEAN_CAMPAIGN_WORLD.services?.noticeboards).toHaveLength(0);
+    expect(LEAN_CAMPAIGN_WORLD.services?.stations).toBeUndefined();
+    expect(LEAN_CAMPAIGN_WORLD.services?.mailboxes).toBeUndefined();
+    expect(LEAN_CAMPAIGN_WORLD.services?.noticeboards).toBeUndefined();
     expect(LEAN_CAMPAIGN_WORLD.services?.musterBoards).toBeUndefined();
     expect(LEAN_CAMPAIGN_WORLD.services?.graveyards).toHaveLength(1);
     for (const value of Object.values(LEAN_CAMPAIGN_WORLD.props)) {
