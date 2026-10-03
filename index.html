@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#050509" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-title" content="Avalon 30K" />
+<meta name="apple-mobile-web-app-title" content="The Nameless Road" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="screen-orientation" content="landscape" />
 <meta name="orientation" content="landscape" />
-<title>Avalon 30K — Single-Player Open-World RPG</title>
-<meta name="description" content="Avalon 30K is a single-player open-world sci-fantasy RPG prototype." />
+<title>The Nameless Road — Fantasy RPG Prototype</title>
+<meta name="description" content="The Nameless Road is a replayable single-player fantasy RPG prototype about discovering who you were and choosing who you become." />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="manifest" href="/manifest.webmanifest" />
 
@@ -895,24 +895,14 @@
 
     <div id="homepage-views-container">
       <section id="hero-view" class="view-section" aria-hidden="false">
-        <h1 class="visually-hidden">Avalon 30K</h1>
+        <h1 class="visually-hidden">The Nameless Road</h1>
         <div class="website-story">
-          <div class="main-logo" id="title-logo" role="img" aria-label="Avalon 30K">AVALON 30K</div>
+          <div class="main-logo" id="title-logo" role="img" aria-label="The Nameless Road">THE NAMELESS ROAD</div>
           <p class="website-genre">
-            <span>Single-player open-world sci-fantasy RPG</span>
+            <span>Replayable single-player fantasy RPG</span>
           </p>
-          <h2 class="website-headline">The First Circle rides again.</h2>
-          <p class="website-intro">Begin as Lancelot, alone on an unfamiliar world, and uncover what waits beyond the horizon.</p>
-          <div class="website-community-links">
-          <a class="website-community" href="https://discord.com/invite/worldofclaudecraft" target="_blank" rel="noopener noreferrer">
-            <span data-i18n="footer.discordLabel">Join the Discord</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
-          </a>
-          <a class="website-community" href="https://github.com/levy-street/world-of-claudecraft" target="_blank" rel="noopener noreferrer">
-            <span data-i18n="landing.contribute">Contribute to the game</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
-          </a>
-          </div>
+          <h2 class="website-headline">You remember nothing. Your hands remember something.</h2>
+          <p class="website-intro">You were found after a violent storm with no name, no homeland, and no clear past. What you still know how to do may be the first clue to who you were.</p>
         </div>
 
         <div id="mode-select" class="website-entry-card">
@@ -921,7 +911,7 @@
               <span class="website-card-emblem" aria-hidden="true"><img src="/icon-192.png" alt="" /></span>
               <span>Game Mode</span>
             </div>
-            <h2>Begin Avalon 30K</h2>
+            <h2>Begin The Nameless Road</h2>
           </div>
           <div class="play-console">
             <!-- World selector: a themed dropdown that defaults to Online and can switch to Offline.
@@ -965,7 +955,7 @@
               </div>
             </div>
 
-            <button type="button" class="btn-play" id="btn-play" aria-label="Start Avalon 30K">
+            <button type="button" class="btn-play" id="btn-play" aria-label="Start The Nameless Road">
               <span class="btn-play-sheen" aria-hidden="true"></span>
               <span class="btn-play-label">New Game</span>
               <span class="website-play-arrow" aria-hidden="true">
@@ -983,10 +973,9 @@
           <!-- Tip — part of the same play container (divider above). -->
           <div class="play-tip">
             <div class="website-performance">
-              <span class="website-tip-label" data-i18n="mode.tipTitle">TIP:</span>
-              <p class="website-performance-tip"><span data-i18n="mode.tipText">Game running slowly? Try disabling your ad blocker for this site.</span></p>
+              <span class="website-tip-label">PLAYABLE SLICE:</span>
+              <p class="website-performance-tip">Your class changes what the Wanderer remembers first. The wider identity and faction systems will grow from this foundation.</p>
             </div>
-            <p id="performance-tip"><b data-i18n="mode.tipTitle">TIP:</b> <span data-i18n="mode.tipText">Game running slowly? Try disabling your ad blocker for this site.</span></p>
           </div>
         </div>
 
@@ -1424,43 +1413,40 @@
         </div>
 
         <div id="offline-select" class="panel auth-panel auth-panel-premium cs-wow" hidden>
-          <h2 class="auth-title">New Game</h2>
+          <h2 class="auth-title">What Do You Remember?</h2>
           <div class="charselect-layout">
             <div class="charselect-col-left">
               <div class="char-create">
-                <label for="char-name" class="auth-label">Protagonist</label>
-                <div class="char-input-group">
-                  <input id="char-name" maxlength="16" value="Lancelot" readonly aria-describedby="offline-error" autocomplete="off" />
-                  <div id="offline-error" class="auth-error" aria-live="polite"></div>
-                </div>
+                <p class="website-intro">
+                  Rain. Broken stone. A road you do not recognize. Travelers brought you to a frontier settlement, but no one there knows your face.
+                  You cannot remember your name. You cannot remember your home. When danger comes, however, instinct answers.
+                </p>
+                <input id="char-name" type="hidden" value="Wanderer" autocomplete="off" />
+                <div id="offline-error" class="auth-error" aria-live="polite"></div>
+                <div class="cs-section-header">Choose the skill your body or mind still remembers</div>
                 <div class="mini-class-row">
-                  <button type="button" class="mini-class" data-class="warrior" aria-label="Lancelot, Knight of the First Circle" aria-pressed="false">Lancelot</button>
-                  <button type="button" class="mini-class" data-class="paladin" hidden aria-hidden="true" tabindex="-1">Paladin</button>
-                  <button type="button" class="mini-class" data-class="hunter" hidden aria-hidden="true" tabindex="-1">Hunter</button>
-                  <button type="button" class="mini-class" data-class="rogue" hidden aria-hidden="true" tabindex="-1">Rogue</button>
-                  <button type="button" class="mini-class" data-class="priest" hidden aria-hidden="true" tabindex="-1">Priest</button>
-                  <button type="button" class="mini-class" data-class="shaman" hidden aria-hidden="true" tabindex="-1">Shaman</button>
-                  <button type="button" class="mini-class" data-class="mage" hidden aria-hidden="true" tabindex="-1">Mage</button>
-                  <button type="button" class="mini-class" data-class="warlock" hidden aria-hidden="true" tabindex="-1">Warlock</button>
-                  <button type="button" class="mini-class" data-class="druid" hidden aria-hidden="true" tabindex="-1">Druid</button>
+                  <button type="button" class="mini-class" data-class="warrior" data-i18n="classes.warrior" data-i18n-aria="classes.warriorAria" aria-label="Warrior class" aria-pressed="false">Warrior</button>
+                  <button type="button" class="mini-class" data-class="paladin" data-i18n="classes.paladin" data-i18n-aria="classes.paladinAria" aria-label="Paladin class" aria-pressed="false">Paladin</button>
+                  <button type="button" class="mini-class" data-class="hunter" data-i18n="classes.hunter" data-i18n-aria="classes.hunterAria" aria-label="Hunter class" aria-pressed="false">Hunter</button>
+                  <button type="button" class="mini-class" data-class="rogue" data-i18n="classes.rogue" data-i18n-aria="classes.rogueAria" aria-label="Rogue class" aria-pressed="false">Rogue</button>
+                  <button type="button" class="mini-class" data-class="priest" data-i18n="classes.priest" data-i18n-aria="classes.priestAria" aria-label="Priest class" aria-pressed="false">Priest</button>
+                  <button type="button" class="mini-class" data-class="shaman" data-i18n="classes.shaman" data-i18n-aria="classes.shamanAria" aria-label="Shaman class" aria-pressed="false">Shaman</button>
+                  <button type="button" class="mini-class" data-class="mage" data-i18n="classes.mage" data-i18n-aria="classes.mageAria" aria-label="Mage class" aria-pressed="false">Mage</button>
+                  <button type="button" class="mini-class" data-class="warlock" data-i18n="classes.warlock" data-i18n-aria="classes.warlockAria" aria-label="Warlock class" aria-pressed="false">Warlock</button>
+                  <button type="button" class="mini-class" data-class="druid" data-i18n="classes.druid" data-i18n-aria="classes.druidAria" aria-label="Druid class" aria-pressed="false">Druid</button>
                 </div>
-                <p class="website-intro"><strong>Knight of the First Circle.</strong> Sword-focused combat now; deeper Avalon 30K abilities and Resonance progression will replace the inherited class kit in later milestones.</p>
+                <p id="campaign-class-hook" class="website-intro">Select a class. This is not your full identity; it is simply the first thing your forgotten life gives back to you.</p>
                 <div id="offline-skin-row" class="skin-row"></div>
                 <div id="offline-appearance"></div>
                 <div class="auth-actions">
-                  <button type="button" class="btn btn-primary" id="btn-start-offline">Begin</button>
+                  <button type="button" class="btn btn-primary" id="btn-start-offline" disabled>Wake and Begin</button>
                   <button type="button" class="btn btn-secondary" id="btn-offline-back">Back</button>
                 </div>
               </div>
             </div>
             <div class="charselect-col-right">
               <div class="char-preview-container" id="offline-preview-container"></div>
-              <div class="class-details-panel">
-                <h3>Lancelot</h3>
-                <p><strong>Knight of the First Circle</strong></p>
-                <p>The inherited warrior systems are temporary scaffolding. Avalon 30K will replace them with Lancelot-specific sword combat, equipment, and Resonance progression.</p>
-              </div>
-              <div id="offline-class-details" class="class-details-panel" aria-live="polite" hidden></div>
+              <div id="offline-class-details" class="class-details-panel" aria-live="polite"></div>
             </div>
           </div>
         </div>
