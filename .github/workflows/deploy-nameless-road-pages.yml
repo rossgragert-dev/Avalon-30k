@@ -47,6 +47,7 @@ jobs:
           tests/campaign_save.test.ts
           tests/campaign_primary_restore.test.ts
           tests/offline_mode_gate.test.ts
+          tests/lean_campaign_world.test.ts
 
       - name: Build lightweight browser client
         env:
