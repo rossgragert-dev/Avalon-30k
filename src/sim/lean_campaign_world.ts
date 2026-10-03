@@ -15,9 +15,7 @@ const EMPTY_PROPS = Object.fromEntries(
 const start = { ...BUILTIN_WORLD.playerStart };
 
 export const LEAN_CAMPAIGN_WORLD: WorldContent = {
-  // Keep one familiar low-level terrain band so collision/ground generation stay
-  // mature while almost all authored content is removed.
-  zones: [BUILTIN_WORLD.zones[0]],
+  zones: BUILTIN_WORLD.zones.slice(0, 1),
   camps: [
     {
       mobId: 'forest_wolf',
@@ -37,7 +35,7 @@ export const LEAN_CAMPAIGN_WORLD: WorldContent = {
     mailboxes: [],
     noticeboards: [],
     musterBoards: [],
-    graveyards: [],
+    graveyards: BUILTIN_WORLD.services?.graveyards?.slice(0, 1) ?? [],
   },
   terrainEdits: [],
   placements: [],
