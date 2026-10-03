@@ -429,6 +429,7 @@ import { MARKET_HOUSE_STOCK } from './sim/market';
 import { bagOwnedMounts } from './sim/mounts';
 import { findPlayerPath, resolvePlayerDestination } from './sim/pathfind';
 import { isSubmerged } from './sim/player_motion';
+import { LEAN_CAMPAIGN_WORLD } from './sim/lean_campaign_world';
 import { Sim } from './sim/sim';
 import { TAB_NEAR_RADIUS, TAB_QUERY_RADIUS, tabConeHalfAt } from './sim/tab_target';
 import {
@@ -5170,10 +5171,11 @@ async function startOffline(
       : null;
   const effectiveClass = campaignSave?.playerClass ?? playerClass;
   const effectiveName = campaignSave?.name ?? name;
+  const effectiveWorld = isCampaignSession ? LEAN_CAMPAIGN_WORLD : world;
 
-  // Editor play-test: route terrain + props at the custom world too (the renderer
-  // reaches it by module global), in addition to the Sim reading cfg.world.
-  if (world) setActiveWorldContent(world);
+  // Campaign sessions now use the intentionally sparse performance world. Editor
+  // playtests still receive their own supplied custom world.
+  if (effectiveWorld) setActiveWorldContent(effectiveWorld);
   const sim = loadSpan(
     'sim-build',
     () =>
@@ -5183,7 +5185,7 @@ async function startOffline(
           name: effectiveName,
           playerState: campaignSave?.state,
           campaignSession: isCampaignSession,
-          world,
+          world: effectiveWorld,
           seedOverride,
           devCommands: import.meta.env.DEV,
         }),
