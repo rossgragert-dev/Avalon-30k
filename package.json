@@ -107,7 +107,9 @@
     "wiki:seed": "node scripts/mediawiki/build_seed.mjs",
     "sim:nythraxis-matrix": "tsx scripts/nythraxis_matrix.ts",
     "sim:healing": "tsx scripts/healing_montecarlo.ts",
-    "sim:rift": "tsx scripts/rift_montecarlo.ts"
+    "sim:rift": "tsx scripts/rift_montecarlo.ts",
+    "build:remote-sim": "esbuild server/remote_campaign.ts --bundle --platform=node --format=cjs --outfile=dist-remote/remote_campaign.cjs",
+    "remote:sim": "npm run build:remote-sim && node dist-remote/remote_campaign.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-sesv2": "^3.1084.0",

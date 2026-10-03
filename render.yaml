@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: nameless-road-remote-sim
+    runtime: node
+    plan: free
+    branch: nameless-road-v0.1.2-remote-sim-experiment
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build:remote-sim
+    startCommand: node dist-remote/remote_campaign.cjs
+    healthCheckPath: /healthz
+    autoDeployTrigger: off
+    envVars:
+      - key: MAX_REMOTE_SESSIONS
+        value: "4"
