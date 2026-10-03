@@ -6799,6 +6799,8 @@ async function startRemoteCampaign(cls: PlayerClass): Promise<void> {
   const origin = configuredRemoteSimOrigin();
   if (!origin) throw new Error('remote simulation endpoint is not configured');
 
+  // The remote Sim and the local renderer must resolve the same stripped world.
+  setActiveWorldContent(LEAN_CAMPAIGN_WORLD);
   stopShaderWarmup();
   if (!(await prepareWorldEntry())) return;
   audio.init();
