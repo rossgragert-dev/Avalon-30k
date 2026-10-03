@@ -2,7 +2,7 @@ import type { Entity, PlayerClass } from '../sim/types';
 import { ALL_CLASSES } from '../sim/types';
 
 export const REMOTE_SIM_TOKEN_PREFIX = 'nameless-road-remote:';
-export const REMOTE_SIM_INTEREST_RADIUS = 125;
+export const REMOTE_SIM_INTEREST_RADIUS = 72;
 
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
