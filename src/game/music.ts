@@ -9,6 +9,7 @@
 // exactly as before while playback costs no synthesis CPU and no up-front
 // download. Each fight opens on one of the two battle themes at random.
 
+import { staticAssetUrl } from '../static_asset_url';
 import { resumeWhenAllowed } from './audio_unlock';
 import { CRUCIBLE_STREAM_URLS, type CrucibleFloor } from './crucible_music';
 import { dungeonMusicZoneForDungeon } from './dungeon_music_zones';
@@ -4410,7 +4411,7 @@ export class MusicDirector {
   private ensureBossElement(): HTMLAudioElement | null {
     if (this.bossElement) return this.bossElement;
     if (typeof Audio !== 'function') return null;
-    const el = new Audio('/audio/dungeon-boss-fight.mp3');
+    const el = new Audio(staticAssetUrl('/audio/dungeon-boss-fight.mp3'));
     el.loop = true;
     el.preload = 'auto';
     this.bossElement = el;
@@ -4421,7 +4422,7 @@ export class MusicDirector {
     const ctx = this.ctx;
     if (!ctx || this.bossBuffer || this.bossLoading || typeof fetch !== 'function') return;
     this.bossLoading = true;
-    void fetch('/audio/dungeon-boss-fight.mp3')
+    void fetch(staticAssetUrl('/audio/dungeon-boss-fight.mp3'))
       .then((res) => res.arrayBuffer())
       .then((bytes) => ctx.decodeAudioData(bytes))
       .then((buffer) => {
@@ -4515,7 +4516,7 @@ export class MusicDirector {
     const gain = ctx.createGain();
     gain.gain.value = 0;
     gain.connect(this.master);
-    return { url, el: null, gain, target: 0, silentAt: 0 };
+    return { url: staticAssetUrl(url), el: null, gain, target: 0, silentAt: 0 };
   }
 
   /** Create and wire the looping, progressively-downloaded media element. */
