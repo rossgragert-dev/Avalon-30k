@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     branch: nameless-road-v0.1.2-remote-sim-experiment
-    buildCommand: corepack enable && corepack prepare pnpm@10.34.5 --activate && pnpm install --frozen-lockfile && pnpm run build:remote-sim
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build:remote-sim
     startCommand: node dist-remote/remote_campaign.cjs
     healthCheckPath: /healthz
     autoDeployTrigger: off
