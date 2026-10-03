@@ -22,7 +22,7 @@ function memoryStorage() {
   };
 }
 
-const STATE: CharacterState = {
+const STATE = {
   level: 3,
   xp: 45,
   copper: 120,
@@ -46,7 +46,7 @@ const STATE: CharacterState = {
   arena2v2Rating: 0,
   arena2v2Wins: 0,
   arena2v2Losses: 0,
-};
+} as CharacterState;
 
 describe('Avalon save slot', () => {
   it('round-trips the inherited CharacterState and optional appearance', () => {
