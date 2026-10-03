@@ -494,7 +494,20 @@ function storedFrameRateCapValue(): number {
   }
 }
 
+function isIphoneThermalProfile(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /iPhone|iPod/i.test(navigator.userAgent);
+}
+
 function applyStoredChoice(wiring: FrameCadenceWiring, search: string): FrameRateChoice {
+  // This experiment deliberately caps iPhone at 30 fps. A ProMotion panel can
+  // otherwise keep the GPU busy at 60/120 Hz even after resolution/foliage
+  // shedding, which is exactly the sustained load that triggered OS thermal
+  // dimming in our field test.
+  if (isIphoneThermalProfile()) {
+    wiring.setIntent(30);
+    return { auto: false, intent: 30, fromUrl: true };
+  }
   const overridden = parseFrameCeilingIntent(search) !== null;
   const choice = resolveFrameRateChoice(
     overridden ? FRAME_RATE_CAP_VALUES.display : storedFrameRateCapValue(),

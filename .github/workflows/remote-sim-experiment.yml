@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - nameless-road-v0.1.2-remote-sim-experiment
+      - nameless-road-v0.1.3-iphone-thermal-profile
   workflow_dispatch:
 
 permissions:
@@ -36,7 +37,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Test remote wire
-        run: pnpm vitest run tests/remote_sim_wire.test.ts tests/campaign_identity.test.ts
+        run: pnpm vitest run tests/remote_sim_wire.test.ts tests/lean_campaign_world.test.ts tests/campaign_identity.test.ts
 
       - name: Build remote service
         run: pnpm run build:remote-sim
@@ -60,5 +61,5 @@ jobs:
           WOC_SINGLEPLAYER_WEB: '1'
           WOC_EXTERNAL_PUBLIC_ASSETS: '1'
           VITE_SITE_BASE: /Avalon-30k/
-          VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/nameless-road-v0.1.2-remote-sim-experiment/public
+          VITE_PUBLIC_ASSET_ORIGIN: https://raw.githubusercontent.com/rossgragert-dev/Avalon-30k/nameless-road-v0.1.3-iphone-thermal-profile/public
         run: pnpm vite build

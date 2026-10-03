@@ -1457,8 +1457,11 @@ export class Renderer {
     dropFrameMs: 0,
   };
   private runtimeEntryElapsedMs = 0;
-  private entityViewCreateRangeSq = ENTITY_VIEW_CREATE_RANGE_SQ;
-  private entityViewDestroyRangeSq = ENTITY_VIEW_DESTROY_RANGE_SQ;
+  // iOS thermal profile: do not build articulated/interactive views out to
+  // the donor MMO's full 80/96 yd bands. Gameplay authority remains unchanged;
+  // this only reduces scene graphs, draw calls, animation and retained GPU state.
+  private entityViewCreateRangeSq = GFX.iosMemoryProfile ? 52 * 52 : ENTITY_VIEW_CREATE_RANGE_SQ;
+  private entityViewDestroyRangeSq = GFX.iosMemoryProfile ? 64 * 64 : ENTITY_VIEW_DESTROY_RANGE_SQ;
   private renderBudgetGovernor!: RenderBudgetGovernor;
   private renderBudgetState!: RenderBudgetState;
   private readonly renderBudgetSample: RenderBudgetSample = {
@@ -2728,12 +2731,16 @@ export class Renderer {
     this.attachZoneFeature(this.decorTorchFx);
     for (const flame of this.decorTorchFx.flames) flame.matrixAutoUpdate = true;
     this.flames.push(...this.decorTorchFx.flames);
-    // The streamed wilderness layer (glow flora + fireflies) follows the camera
-    // and rebuilds on a cell crossing, so it is NOT a zone feature.
-    this.nightAccents = buildNightAccents(this.sim.cfg.seed);
-    setRenderCategory(this.nightAccents.group, 'props');
-    this.scene.add(this.nightAccents.group);
-    bd('night-accents');
+    // The streamed wilderness night layer is cosmetic and camera-following.
+    // The iPhone thermal baseline skips allocating it entirely: no fireflies or
+    // glow flora are worth the extra particles, geometry and update work while
+    // we establish a cool/stable mobile floor.
+    if (!GFX.iosMemoryProfile) {
+      this.nightAccents = buildNightAccents(this.sim.cfg.seed);
+      setRenderCategory(this.nightAccents.group, 'props');
+      this.scene.add(this.nightAccents.group);
+      bd('night-accents');
+    }
     // One residency table at the end of the build (dev console): where the
     // decoded bytes sit at exactly the point the iPhone 17 Pro is killed.
     // Scene first so shared buffers/images attribute to the live world, then
@@ -2741,7 +2748,7 @@ export class Renderer {
     // dev browsers and the iOS WebKit profile under diagnosis: the walk
     // allocates identity sets over every buffer at the peak-memory instant,
     // which the production web population must not pay.
-    if (import.meta.env.DEV || GFX.iosMemoryProfile) {
+    if (import.meta.env.DEV) {
       console.info(
         formatResidencyBudget(
           residencyBudget([
