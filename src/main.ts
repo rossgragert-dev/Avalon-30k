@@ -5154,11 +5154,17 @@ async function startOffline(
   resetLoadProfile();
   loadPhaseStart('entry');
   enterLoadingState(t('loading.world'));
-  // Editor/diagnostic worlds never touch the real Avalon save slot.
+  // Only the named Avalon campaign may touch the real save slot. The inherited
+  // offline runtime is also used by editor playtests, diagnostics, screenshots,
+  // and balance probes; those compatibility sessions must never overwrite a
+  // player's Lancelot campaign.
+  const isAvalonCampaign =
+    playerClass === AVALON_PROTAGONIST_CLASS &&
+    name === AVALON_PROTAGONIST_NAME &&
+    world === undefined &&
+    seedOverride === undefined;
   const avalonSave =
-    world === undefined && seedOverride === undefined && loadAvalonSave
-      ? readAvalonSave(localStorageOrNull())
-      : null;
+    isAvalonCampaign && loadAvalonSave ? readAvalonSave(localStorageOrNull()) : null;
 
   // Editor play-test: route terrain + props at the custom world too (the renderer
   // reaches it by module global), in addition to the Sim reading cfg.world.
@@ -5242,7 +5248,7 @@ async function startOffline(
   }
   // Avalon 30K turns the inherited local Sim into a real single-player save.
   // Editor/diagnostic compatibility sessions remain disposable.
-  if (world === undefined && seedOverride === undefined) {
+  if (isAvalonCampaign) {
     const persistAvalon = () => {
       const state = sim.serializeCharacter(sim.playerId);
       if (!state) return;
