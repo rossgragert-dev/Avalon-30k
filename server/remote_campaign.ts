@@ -8,6 +8,8 @@ import {
   withinRemoteInterest,
 } from '../src/net/remote_sim_wire';
 import { normalizeMoveFacing, sanitizeMoveInput } from '../src/sim/move_input';
+import { setActiveWorldContent } from '../src/sim/data';
+import { LEAN_CAMPAIGN_WORLD } from '../src/sim/lean_campaign_world';
 import { Sim } from '../src/sim/sim';
 import { WORLD_SEED } from '../src/sim/world_seed';
 
@@ -162,15 +164,17 @@ function sendSnapshot(session: RemoteSession): void {
 }
 
 function startSession(ws: WebSocket, cls: NonNullable<ReturnType<typeof playerClassFromRemoteToken>>): RemoteSession {
+  setActiveWorldContent(LEAN_CAMPAIGN_WORLD);
   const sim = new Sim({
     seed: WORLD_SEED,
     playerClass: cls,
     playerName: CAMPAIGN_PROTAGONIST_NAME,
     compulsoryTutorial: false,
     devCommands: false,
+    world: LEAN_CAMPAIGN_WORLD,
     // A private single-player server can be more aggressive than the MMO realm:
     // far-away idle mobs do not need to burn CPU for another human viewer.
-    idleMobTickRadius: 110,
+    idleMobTickRadius: 60,
   });
 
   const session = {} as RemoteSession;
